@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HermitClaw OS - Agent Management</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --success: #3fb950;
+            --danger: #f85149;
+            --warning: #d29922;
+            --border: #30363d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .logo { font-size: 1.5rem; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .stat-card .label { color: var(--text-secondary); font-size: 0.875rem; }
+        .stat-card .value { font-size: 2rem; font-weight: bold; margin-top: 0.5rem; }
+        .stat-card.success .value { color: var(--success); }
+        .stat-card.warning .value { color: var(--warning); }
+
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: var(--text-primary); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h2 { font-size: 1.25rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: var(--bg-primary); border-color: var(--text-secondary); }
+        .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-danger { color: var(--danger); border-color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
+
+        .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem; }
+
+        .agent-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .agent-name { font-size: 1.125rem; font-weight: 600; }
+        .agent-role { color: var(--text-secondary); font-size: 0.875rem; }
+        .agent-status { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-active { background: var(--success); }
+        .status-inactive { background: var(--danger); }
+
+        .agent-info { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .budget-bar {
+            height: 4px;
+            background: var(--bg-primary);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .budget-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s;
+        }
+        .budget-fill.warning { background: var(--warning); }
+        .budget-fill.danger { background: var(--danger); }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.hidden { display: none; }
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
+        td { font-size: 0.875rem; }
+
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
+
+        .test-output {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1><span class="logo">🐚</span> HermitClaw OS</h1>
+        <div>
+            <span id="status" style="color: var(--text-secondary);">Loading...</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Agents</div>
+                <div class="value" id="stat-agents">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Active Containers</div>
+                <div class="value" id="stat-containers">0</div>
+            </div>
+            <div class="stat-card success">
+                <div class="label">Allowlisted Users</div>
+                <div class="value" id="stat-users">0</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="label">Today's Spend</div>
+                <div class="value" id="stat-spend">$0.00</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="agents">Agents</button>
+            <button class="tab" data-tab="allowlist">Allowlist</button>
+            <button class="tab" data-tab="settings">Settings</button>
+        </div>
+
+        <div class="section active" id="section-agents">
+            <div class="card">
+                <h2>
+                    <span>Your AI Workforce</span>
+                    <button class="btn btn-primary" onclick="showCreateAgent()">+ New Agent</button>
+                </h2>
+                <div id="agents-grid" class="agent-grid"></div>
+            </div>
+        </div>
+
+        <div class="section" id="section-allowlist">
+            <div class="card">
+                <h2>
+                    <span>Telegram Allowlist</span>
+                    <button class="btn btn-primary" onclick="showAddUser()">+ Add User</button>
+                </h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>First Name</th>
+                            <th>Added</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allowlist-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="section-settings">
+            <div class="card">
+                <h2>API Configuration</h2>
+                <div class="form-group">
+                    <label>Default Provider</label>
+                    <select id="setting-provider">
+                        <option value="openrouter">OpenRouter</option>
+                        <option value="openai">OpenAI</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Default Model</label>
+                    <input type="text" id="setting-model" placeholder="anthropic/claude-3-haiku">
+                </div>
+                <div class="form-group">
+                    <label>API Keys Status</label>
+                    <div id="api-status" style="color: var(--text-secondary);"></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Create Agent</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+
+        async function fetchJson(url) {
+            const res = await fetch(url);
+            return res.json();
+        }
+
+        async function postJson(url, data) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        }
+
+        async function deleteJson(url) {
+            await fetch(url, { method: 'DELETE' });
+        }
+
+        async function loadStats() {
+            const stats = await fetchJson(`${API}/stats`);
+            document.getElementById('stat-agents').textContent = stats.agentsCount;
+            document.getElementById('stat-containers').textContent = stats.activeContainers;
+            document.getElementById('stat-users').textContent = stats.allowlistCount;
+            document.getElementById('stat-spend').textContent = '$' + stats.totalSpendToday.toFixed(2);
+            document.getElementById('status').textContent = stats.docker ? '🟢 Docker Online' : '🔴 Docker Offline';
+        }
+
+        async function loadAgents() {
+            const agents = await fetchJson(`${API}/agents`);
+            const grid = document.getElementById('agents-grid');
+            
+            if (agents.length === 0) {
+                grid.innerHTML = '<div class="empty-state">No agents yet. Create your first AI worker!</div>';
+                return;
+            }
+
+            grid.innerHTML = agents.map(agent => {
+                const budgetPercent = (agent.budget.current_spend_usd / agent.budget.daily_limit_usd) * 100;
+                const budgetClass = budgetPercent > 90 ? 'danger' : budgetPercent > 70 ? 'warning' : '';
+                
+                return `
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div>
+                                <div class="agent-name">${agent.name}</div>
+                                <div class="agent-role">${agent.role}</div>
+                            </div>
+                            <span class="agent-status">
+                                <span class="status-dot ${agent.is_active ? 'status-active' : 'status-inactive'}"></span>
+                                ${agent.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <div class="agent-info">
+                            <strong>Image:</strong> ${agent.docker_image}<br>
+                            <strong>Token:</strong> <code>${agent.telegram_token.slice(0, 8)}...</code>
+                        </div>
+                        <div class="agent-info">
+                            <strong>Budget:</strong> $${agent.budget.current_spend_usd.toFixed(2)} / $${agent.budget.daily_limit_usd}
+                            <div class="budget-bar">
+                                <div class="budget-fill ${budgetClass}" style="width: ${Math.min(budgetPercent, 100)}%"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                            <button class="btn" onclick="testAgent(${agent.id})">Test</button>
+                            <button class="btn" onclick="editAgent(${agent.id})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteAgent(${agent.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadAllowlist() {
+            const users = await fetchJson(`${API}/allowlist`);
+            const tbody = document.getElementById('allowlist-table');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">No users in allowlist</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td><code>${user.user_id}</code></td>
+                    <td>@${user.username || '-'}</td>
+                    <td>${user.first_name || '-'}</td>
+                    <td>${new Date(user.added_at).toLocaleDateString()}</td>
+                    <td><button class="btn btn-danger" onclick="removeUser(${user.user_id})">Remove</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadSettings() {
+            const settings = await fetchJson(`${API}/settings`);
+            document.getElementById('setting-provider').value = settings.default_provider;
+            document.getElementById('setting-model').value = settings.default_model;
+            
+            const status = [];
+            if (settings.openai_key_set) status.push('✅ OpenAI Key Set');
+            if (settings.openrouter_key_set) status.push('✅ OpenRouter Key Set');
+            if (!settings.openai_key_set && !settings.openrouter_key_set) status.push('❌ No API Keys Set');
+            document.getElementById('api-status').innerHTML = status.join('<br>');
+        }
+
+        async function showCreateAgent() {
+            const images = await fetchJson(`${API}/images`);
+            document.getElementById('modal-title').textContent = 'Create New Agent';
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="createAgent(event)">
+                    <div class="form-group">
+                        <label>Agent Name</label>
+                        <input type="text" name="name" required placeholder="e.g., Sherlock">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" name="role" placeholder="e.g., Security Researcher">
+                    </div>
+                    <div class="form-group">
+                        <label>Telegram Bot Token</label>
+                        <input type="text" name="telegram_token" required placeholder="Your bot token from @BotFather">
+                    </div>
+                    <div class="form-group">
+                        <label>Docker Image</label>
+                        <select name="docker_image">
+                            ${images.map(img => `<option value="${img}">${img}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>System Prompt</label>
+                        <textarea name="system_prompt" placeholder="You are a helpful AI assistant..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">Create Agent</button>
+                </form>
+            `;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        async function createAgent(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                name: form.name.value,
+                role: form.role.value,
+                telegram_token: form.telegram_token.value,
+                docker_image: form.docker_image.value,
+                system_prompt: form.system_prompt.value
+            };
+            await postJson(`${API}/agents`, data);
+            closeModal();
+            loadAgents();
+            loadStats();
+        }
+
+        async function testAgent(id) {
+            const output = prompt('Enter test message (or leave empty for default):');
+            const result = await postJson(`${API}/test-agent/${id}`, { message: output || 'Say hello and tell me about your environment.' });
+            
+            if (result.error) {
+                alert('Error: ' + result.error);
+            } else {
+                alert('Agent Response:\n\n' + result.output);
+            }
+            loadAgents();
+            loadStats();
+        }
+
+        async function deleteAgent(id) {
+            if (!confirm('Are you sure you want to delete this agent?')) return;
+            await deleteJson(`${API}/agents/${id}`);
+            loadAgents();
+            loadStats();
+        }
+
+        async function showAddUser() {
+            document.getElementById('modal-title').textContent = 'Add User to Allowlist';
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="addUser(event)">
+                    <div class="form-group">
+                        <label>Telegram User ID</label>
+                        <input type="number" name="user_id" required placeholder="Get from @userinfobot">
+                    </div>
+                    <div class="form-group">
+                        <label>Username (optional)</label>
+                        <input type="text" name="username" placeholder="@username">
+                    </div>
+                    <div class="form-group">
+                        <label>First Name (optional)</label>
+                        <input type="text" name="first_name" placeholder="John">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">Add User</button>
+                </form>
+            `;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        async function addUser(e) {
+            e.preventDefault();
+            const form = e.target;
+            await postJson(`${API}/allowlist`, {
+                user_id: Number(form.user_id.value),
+                username: form.username.value,
+                first_name: form.first_name.value
+            });
+            closeModal();
+            loadAllowlist();
+            loadStats();
+        }
+
+        async function removeUser(userId) {
+            if (!confirm('Remove this user from allowlist?')) return;
+            await deleteJson(`${API}/allowlist/${userId}`);
+            loadAllowlist();
+            loadStats();
+        }
+
+        async function saveSettings() {
+            await postJson(`${API}/settings`, {
+                key: 'default_provider',
+                value: document.getElementById('setting-provider').value
+            });
+            await postJson(`${API}/settings`, {
+                key: 'default_model',
+                value: document.getElementById('setting-model').value
+            });
+            alert('Settings saved!');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('section-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        loadStats();
+        loadAgents();
+        loadAllowlist();
+        loadSettings();
+
+        setInterval(() => {
+            loadStats();
+        }, 30000);
+    </script>
+</body>
+</html>

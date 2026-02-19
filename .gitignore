@@ -1,0 +1,8 @@
+node_modules/
+dist/
+target/
+*.log
+.env
+data/
+textify.yaml
+codebase.txt

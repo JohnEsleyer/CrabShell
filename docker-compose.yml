@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  shell:
+    build:
+      context: ./shell
+      dockerfile: ../crab/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - PORT=3000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config:/app/config
+      - ./data:/app/data
+    restart: unless-stopped
+
+  crab:
+    build:
+      context: ./crab
+      dockerfile: Dockerfile
+    image: hermit-crab:latest
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}

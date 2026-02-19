@@ -1,0 +1,5 @@
+{
+  "maxTokensPerRequest": 500,
+  "maxTokensPerDay": 10000,
+  "maxHistoryMessages": 10
+}

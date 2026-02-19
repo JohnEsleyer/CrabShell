@@ -1,0 +1,26 @@
+{
+  "name": "hermit-claw-shell",
+  "version": "1.0.0",
+  "description": "The Shell - Node.js host controller for HermitClaw",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts"
+  },
+  "dependencies": {
+    "sql.js": "^1.10.0",
+    "dockerode": "^4.0.0",
+    "fastify": "^4.26.0",
+    "@fastify/static": "^7.0.0",
+    "grammy": "^1.19.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/sql.js": "^1.4.9",
+    "@types/dockerode": "^3.3.23",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.2"
+  }
+}
