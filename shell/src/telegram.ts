@@ -1,4 +1,4 @@
-import { getAgentByToken, isAllowed, getBudget, updateSpend, canSpend, updateAuditLog, getAgentById, getSetting } from './db';
+import { getAgentByToken, isAllowed, getBudget, updateSpend, canSpend, updateAuditLog, getAgentById, getSetting, getOperator, getActiveMeetings, createMeeting, updateMeetingTranscript, closeMeeting } from './db';
 import { spawnAgent, docker, getCubicleStatus, stopCubicle, removeCubicle } from './docker';
 
 interface TelegramUpdate {
@@ -20,6 +20,8 @@ interface TelegramUpdate {
 
 const TELEGRAM_MAX_LENGTH = 4000;
 
+const pendingDelegations = new Map<string, { agentId: number; role: string; task: string; timestamp: number }>();
+
 export async function sendChatAction(token: string, chatId: number, action: 'typing' | 'upload_document' = 'typing'): Promise<void> {
     const url = `https://api.telegram.org/bot${token}/sendChatAction`;
     
@@ -37,7 +39,7 @@ export async function sendChatAction(token: string, chatId: number, action: 'typ
     }
 }
 
-export async function smartReply(token: string, chatId: number, text: string): Promise<void> {
+export async function smartReply(token: string, chatId: number, text: string, messageId?: number): Promise<void> {
     if (text.length > TELEGRAM_MAX_LENGTH) {
         const buffer = Buffer.from(text, 'utf-8');
         const url = `https://api.telegram.org/bot${token}/sendDocument`;
@@ -46,6 +48,12 @@ export async function smartReply(token: string, chatId: number, text: string): P
         formData.append('chat_id', String(chatId));
         formData.append('document', new Blob([buffer], { type: 'text/plain' }), 'output.txt');
         formData.append('caption', '📄 Output was too long, sent as file.');
+        
+        if (messageId) {
+            try {
+                await editMessageText(token, chatId, messageId, '✅ Response ready:');
+            } catch {}
+        }
         
         try {
             await fetch(url, {
@@ -60,7 +68,11 @@ export async function smartReply(token: string, chatId: number, text: string): P
             }
         }
     } else {
-        await sendTelegramMessage(token, chatId, text);
+        if (messageId) {
+            await editMessageText(token, chatId, messageId, text);
+        } else {
+            await sendTelegramMessage(token, chatId, text);
+        }
     }
 }
 
@@ -155,7 +167,7 @@ export async function processAgentMessage(
     chatId: number,
     userId: number,
     text: string,
-    thinkingMessageId?: number
+    statusMessageId?: number
 ): Promise<{ output: string; messageId?: number }> {
     const agent = await getAgentByToken(token);
     if (!agent) {
@@ -163,8 +175,21 @@ export async function processAgentMessage(
     }
 
     await sendChatAction(token, chatId, 'typing');
+    
+    if (statusMessageId) {
+        await editMessageText(token, chatId, statusMessageId, `🔄 *${agent.name}* is waking up...`);
+    }
+
+    const meetings = await getActiveMeetings(agent.id);
+    const meetingContext = meetings.length > 0 
+        ? meetings.map(m => `Meeting with Agent ${m.initiator_id === agent.id ? m.participant_id : m.initiator_id}: ${m.topic}\n${m.transcript || 'No transcript yet'}`).join('\n\n')
+        : null;
 
     try {
+        if (statusMessageId) {
+            await editMessageText(token, chatId, statusMessageId, `🔄 *${agent.name}* is thinking...`);
+        }
+        
         const result = await spawnAgent({
             agentId: agent.id,
             agentName: agent.name,
@@ -177,30 +202,136 @@ export async function processAgentMessage(
             userId: userId
         });
 
+        if (result.output.includes('[MEETING]') && result.output.includes('TARGET_ROLE:')) {
+            const roleMatch = result.output.match(/TARGET_ROLE:\s*(.+)/);
+            const taskMatch = result.output.match(/TASK:\s*(.+)/);
+            
+            if (roleMatch && taskMatch) {
+                const targetRole = roleMatch[1].trim();
+                const task = taskMatch[1].trim();
+                
+                const delegationId = `${agent.id}_${Date.now()}`;
+                pendingDelegations.set(delegationId, {
+                    agentId: agent.id,
+                    role: targetRole,
+                    task: task,
+                    timestamp: Date.now()
+                });
+                
+                await sendDelegationRequest(token, agent.id, agent.name, targetRole, task, delegationId);
+                
+                return { 
+                    output: `📋 Delegation request sent to operator for approval.\nTarget Role: *${targetRole}*\nTask: ${task.substring(0, 100)}...`,
+                    messageId: statusMessageId
+                };
+            }
+        }
+
         const estimatedCost = result.output.length * 0.00001;
         await updateSpend(agent.id, estimatedCost);
 
-        return { output: result.output };
+        return { output: result.output, messageId: statusMessageId };
     } catch (error: any) {
         console.error(`[${agent.name}] Error:`, error);
-        return { output: `Error: ${error.message}` };
+        return { output: `Error: ${error.message}`, messageId: statusMessageId };
     }
+}
+
+async function sendDelegationRequest(
+    token: string,
+    agentId: number,
+    agentName: string,
+    targetRole: string,
+    task: string,
+    delegationId: string
+): Promise<void> {
+    const operator = await getOperator();
+    if (!operator) {
+        console.log('No operator configured for delegation request');
+        return;
+    }
+
+    const keyboard = {
+        inline_keyboard: [[
+            { text: '✅ Approve Delegation', callback_data: `delegate_approve:${delegationId}:${agentId}` },
+            { text: '❌ Deny', callback_data: `delegate_deny:${delegationId}:${agentId}` }
+        ]]
+    };
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    
+    await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: operator.user_id,
+            text: `🤝 *Delegation Request*\n\nAgent *${agentName}* wants to delegate a sub-task:\n\n*Target Role:* ${targetRole}\n*Task:*\n\`\`\`\n${task.substring(0, 500)}\n\`\`\`\n\nThis will spawn a new cubicle for the sub-task.`,
+            parse_mode: 'Markdown',
+            reply_markup: keyboard
+        })
+    });
 }
 
 async function handleCallbackQuery(token: string, query: TelegramUpdate['callback_query']): Promise<string | null> {
     if (!query?.data || !query.message) return null;
 
-    const [action, logIdStr, containerId] = query.data.split(':');
-    const logId = parseInt(logIdStr, 10);
+    const parts = query.data.split(':');
+    const action = parts[0];
     const chatId = query.message.chat.id;
     const messageId = query.message.message_id;
 
-    if (action === 'approve' || action === 'deny') {
+    if (action === 'delegate_approve' || action === 'delegate_deny') {
+        const delegationId = parts[1];
+        const agentId = parseInt(parts[2], 10);
         const adminId = query.from.id;
+        
+        const delegation = pendingDelegations.get(delegationId);
+        
+        if (!delegation) {
+            await editMessageText(token, chatId, messageId, `❌ Delegation request expired or not found.`);
+            return null;
+        }
+        
+        if (action === 'delegate_approve') {
+            await editMessageText(token, chatId, messageId, `✅ *Delegation Approved!*\n\nSpawning sub-agent for: ${delegation.role}...`);
+            
+            const agent = await getAgentById(agentId);
+            if (agent) {
+                try {
+                    const result = await spawnAgent({
+                        agentId: agentId,
+                        agentName: delegation.role,
+                        agentRole: delegation.role,
+                        dockerImage: agent.docker_image,
+                        userMessage: delegation.task,
+                        history: [],
+                        maxTokens: 1000,
+                        requireApproval: false,
+                        userId: adminId
+                    });
+                    
+                    await sendTelegramMessage(token, chatId, `🤝 Sub-agent completed:\n\n${result.output.substring(0, 3000)}`);
+                } catch (err: any) {
+                    await sendTelegramMessage(token, chatId, `❌ Delegation failed: ${err.message}`);
+                }
+            }
+        } else {
+            await editMessageText(token, chatId, messageId, `❌ *Delegation Denied.* No sub-agent will be spawned.`);
+        }
+        
+        pendingDelegations.delete(delegationId);
+        return null;
+    }
+
+    const logIdStr = parts[1];
+    const containerId = parts[2];
+    const logId = parseInt(logIdStr, 10);
+
+    if (action === 'approve' || action === 'deny') {
         const status = action === 'approve' ? 'approved' : 'denied';
         
         if (!isNaN(logId)) {
-            await updateAuditLog(logId, status, adminId);
+            await updateAuditLog(logId, status, query.from.id);
         }
 
         if (action === 'approve' && containerId) {
@@ -269,10 +400,8 @@ export async function sendApprovalRequest(
     const agent = await getAgentById(agentId);
     if (!agent) return;
 
-    let adminChatId = await getSetting('operator_telegram_id');
-    if (!adminChatId) {
-        adminChatId = await getSetting('admin_chat_id');
-    }
+    const operator = await getOperator();
+    const adminChatId = operator?.user_id || await getSetting('admin_chat_id');
     
     if (!adminChatId) {
         console.log('No operator/admin chat ID configured');

@@ -373,41 +373,40 @@ export async function startServer() {
             return reply.code(403).send({ error: 'Forbidden: Invalid webhook secret' });
         }
         
-        try {
-            const token = request.params.token;
-            const update = request.body as any;
-            
-            reply.send({ ok: true });
-            
-            const chatId = update.message?.chat?.id || update.callback_query?.message?.chat?.id;
-            const userId = update.message?.from?.id || update.callback_query?.from?.id;
-            
-            const immediateResponse = await handleTelegramUpdate(token, update);
-            
-            if (immediateResponse && chatId) {
-                await sendTelegramMessage(token, chatId, immediateResponse);
-                return;
-            }
-            
-            if (update.message?.text && chatId && userId) {
-                const text = update.message.text;
+        const token = request.params.token;
+        const update = request.body as any;
+        
+        reply.code(202).send({ ok: true, status: 'accepted' });
+        
+        setImmediate(async () => {
+            try {
+                const chatId = update.message?.chat?.id || update.callback_query?.message?.chat?.id;
+                const userId = update.message?.from?.id || update.callback_query?.from?.id;
                 
-                if (!text.startsWith('/')) {
-                    const thinkingMsg = await sendTelegramMessage(token, chatId, `🔄 *${update.message.from?.first_name || 'Agent'} is thinking...*`);
+                const immediateResponse = await handleTelegramUpdate(token, update);
+                
+                if (immediateResponse && chatId) {
+                    await sendTelegramMessage(token, chatId, immediateResponse);
+                    return;
+                }
+                
+                if (update.message?.text && chatId && userId) {
+                    const text = update.message.text;
                     
-                    const result = await processAgentMessage(token, chatId, userId, text, thinkingMsg);
-                    
-                    if (thinkingMsg) {
-                        await smartReply(token, chatId, result.output);
-                    } else {
-                        await smartReply(token, chatId, result.output);
+                    if (!text.startsWith('/')) {
+                        const agent = await getAgentById?.(parseInt(token.split(':')[0] || '0'));
+                        const agentName = agent?.name || update.message.from?.first_name || 'Agent';
+                        const statusMsg = await sendTelegramMessage(token, chatId, `🔄 *${agentName}* is waking up...`);
+                        
+                        const result = await processAgentMessage(token, chatId, userId, text, statusMsg);
+                        
+                        await smartReply(token, chatId, result.output, statusMsg);
                     }
                 }
+            } catch (error) {
+                console.error('Error processing webhook in background:', error);
             }
-
-        } catch (error) {
-            console.error('Error handling webhook:', error);
-        }
+        });
     });
 
     fastify.get('/api/docker/status', async () => {

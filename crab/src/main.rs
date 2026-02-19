@@ -10,6 +10,8 @@ use std::thread;
 use std::time::Duration;
 use tools::{build_meeting_prompt, execute_command, extract_delegate_action};
 
+const WORKSPACE_DIR: &str = "/app/workspace";
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     agent_name: String,
@@ -18,6 +20,19 @@ struct Config {
     user_msg: String,
     history: Vec<Message>,
     max_tokens: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MemoryEntry {
+    content: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MeetingContext {
+    meeting_id: i32,
+    topic: String,
+    transcript: String,
+    participant_role: String,
 }
 
 fn parse_history_from_file(file_path: &str) -> Vec<Message> {
@@ -67,6 +82,59 @@ fn wait_for_approval(max_wait_secs: u64) -> bool {
     false
 }
 
+fn ensure_workspace_dir() {
+    let workspace = Path::new(WORKSPACE_DIR);
+    if !workspace.exists() {
+        if let Err(e) = fs::create_dir_all(workspace) {
+            eprintln!("Warning: Could not create workspace directory: {}", e);
+        }
+    }
+
+    if let Ok(cwd) = env::current_dir() {
+        if cwd != Path::new(WORKSPACE_DIR) {
+            if let Err(e) = env::set_current_dir(WORKSPACE_DIR) {
+                eprintln!("Warning: Could not change to workspace directory: {}", e);
+            } else {
+                println!("[Workspace] Working directory set to {}", WORKSPACE_DIR);
+            }
+        }
+    }
+}
+
+fn save_meeting_note(meeting_id: i32, note: &str) {
+    use std::io::Write;
+    let note_file = format!("{}/meeting_{}.txt", WORKSPACE_DIR, meeting_id);
+    let timestamp = chrono_timestamp();
+    let content = format!("[{}] {}\n", timestamp, note);
+
+    if let Err(e) = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&note_file)
+        .and_then(|mut f| f.write_all(content.as_bytes()))
+    {
+        eprintln!("Warning: Could not save meeting note: {}", e);
+    }
+}
+
+fn chrono_timestamp() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let duration = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default();
+    let secs = duration.as_secs();
+    let datetime = format!(
+        "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+        1970 + secs / 31536000,
+        (secs % 31536000) / 2592000 + 1,
+        (secs % 2592000) / 86400 + 1,
+        (secs % 86400) / 3600,
+        (secs % 3600) / 60,
+        secs % 60
+    );
+    datetime
+}
+
 fn main() {
     let agent_name = env::var("AGENT_NAME").unwrap_or_else(|_| "HermitClaw".to_string());
     let agent_role = env::var("AGENT_ROLE").unwrap_or_else(|_| "General Assistant".to_string());
@@ -84,6 +152,8 @@ fn main() {
 
     let hitl_enabled = env::var("HITL_ENABLED").unwrap_or_else(|_| "false".to_string()) == "true";
 
+    ensure_workspace_dir();
+
     let api_key = env::var("OPENAI_API_KEY")
         .or_else(|_| env::var("OPENROUTER_API_KEY"))
         .expect("No API key found");
@@ -97,8 +167,11 @@ fn main() {
 
     let mut system_prompt = build_system_prompt(&agent_name, &agent_role, &docker_image);
     system_prompt.push_str(&build_meeting_prompt());
+    system_prompt.push_str(&format!("\n\nWORKSPACE: All file operations should be performed in {} directory. This is your persistent workspace that survives across sessions.\n", WORKSPACE_DIR));
 
     let memory_context = fetch_memory_from_shell(agent_id, &user_msg);
+
+    let meeting_context = fetch_meeting_context(agent_id);
 
     let mut messages = vec![Message {
         role: "system".to_string(),
@@ -109,6 +182,13 @@ fn main() {
         messages.push(Message {
             role: "system".to_string(),
             content: format!("Relevant past memories:\n{}", memory_context),
+        });
+    }
+
+    if !meeting_context.is_empty() {
+        messages.push(Message {
+            role: "system".to_string(),
+            content: format!("Active meeting context:\n{}", meeting_context),
         });
     }
 
@@ -135,13 +215,18 @@ fn main() {
                     println!("[MEETING] TARGET_ROLE: {}", role);
                     println!("[MEETING] TASK: {}", task);
 
+                    if hitl_enabled {
+                        println!("[HITL] DELEGATION_APPROVAL_REQUIRED for role: {}", role);
+                    }
+
                     messages.push(Message {
                         role: "assistant".to_string(),
                         content: response.clone(),
                     });
                     messages.push(Message {
                         role: "user".to_string(),
-                        content: "Delegation request logged. Continue with your work while waiting for the sub-agent response.".to_string(),
+                        content: "Delegation request logged. Waiting for operator approval..."
+                            .to_string(),
                     });
                     continue;
                 }
@@ -157,7 +242,7 @@ fn main() {
                     if needs_approval && hitl_enabled {
                         println!("[HITL] APPROVAL_REQUIRED: {}", cmd);
 
-                        let approved = wait_for_approval(60);
+                        let approved = wait_for_approval(600);
 
                         if !approved {
                             let error_msg = "ERROR: Command denied by user".to_string();
@@ -210,7 +295,7 @@ fn fetch_memory_from_shell(agent_id: i32, _query: &str) -> String {
         return String::new();
     }
 
-    let memory_file = format!("/tmp/hermit_memory_{}.json", agent_id);
+    let memory_file = format!("{}/memory_{}.json", WORKSPACE_DIR, agent_id);
     if let Ok(contents) = fs::read_to_string(&memory_file) {
         if let Ok(memories) = serde_json::from_str::<Vec<MemoryEntry>>(&contents) {
             return memories
@@ -224,9 +309,28 @@ fn fetch_memory_from_shell(agent_id: i32, _query: &str) -> String {
     String::new()
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MemoryEntry {
-    content: String,
+fn fetch_meeting_context(agent_id: i32) -> String {
+    if agent_id == 0 {
+        return String::new();
+    }
+
+    let meeting_file = format!("{}/meeting_context_{}.json", WORKSPACE_DIR, agent_id);
+    if let Ok(contents) = fs::read_to_string(&meeting_file) {
+        if let Ok(meetings) = serde_json::from_str::<Vec<MeetingContext>>(&contents) {
+            return meetings
+                .iter()
+                .map(|m| {
+                    format!(
+                        "Meeting: {}\nParticipant: {}\nTranscript:\n{}",
+                        m.topic, m.participant_role, m.transcript
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("\n\n");
+        }
+    }
+
+    String::new()
 }
 
 fn parse_history_from_base64(encoded: &str) -> Vec<Message> {

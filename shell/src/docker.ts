@@ -1,7 +1,7 @@
 import Docker from 'dockerode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createAuditLog, getAgentById, getAllSettings, getSetting } from './db';
+import { createAuditLog, getAgentById, getAllSettings, getSetting, getActiveMeetings } from './db';
 import { sendApprovalRequest } from './telegram';
 
 let docker: Docker;
@@ -179,6 +179,18 @@ async function createNewCubicle(config: AgentConfig): Promise<Docker.Container> 
     }
 
     const now = new Date().toISOString();
+    
+    const meetings = await getActiveMeetings(config.agentId);
+    if (meetings.length > 0) {
+        const meetingContext = meetings.map(m => ({
+            meeting_id: m.id,
+            topic: m.topic,
+            transcript: m.transcript || '',
+            participant_role: `Agent ${m.initiator_id === config.agentId ? m.participant_id : m.initiator_id}`
+        }));
+        const meetingContextFile = path.join(workspacePath, `meeting_context_${config.agentId}.json`);
+        fs.writeFileSync(meetingContextFile, JSON.stringify(meetingContext, null, 2));
+    }
     
     const binds = [
         `${historyFile}:/app/history.json:ro`,

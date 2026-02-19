@@ -104,6 +104,11 @@ AGENT_ROLE: <role needed, e.g., 'Python Expert'>
 TASK: <detailed task description>
 
 The system will automatically route this to an appropriate agent if available.
+Delegation requires operator approval before a new cubicle is spawned.
+
+SHARED WORKSPACE:
+All files created in /app/workspace are persistent and shared across sessions.
+Use this directory for all file operations to ensure data survives between sessions.
 "#
     .to_string()
 }
