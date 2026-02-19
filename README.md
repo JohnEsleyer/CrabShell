@@ -271,6 +271,29 @@ hermitclaw.created_at: "2026-02-19T10:00:00Z"
 | `hermit/python:latest` | python3, pandas, numpy | Data analysis |
 | `hermit/netsec:latest` | nmap, dig, openssl | Security research |
 
+## Telegram Commands
+
+Interact with agents directly from Telegram:
+
+| Command | Description |
+|---------|-------------|
+| `/start` | Welcome message and available commands |
+| `/help` | Show all commands and usage info |
+| `/status` | Check cubicle status (running/hibernating) |
+| `/debug` | Full debug info (agent, container, budget, workspace) |
+| `/logs` | View recent container logs (last 50 lines) |
+| `/workspace` | List files in persistent workspace |
+| `/budget` | Check remaining daily budget with progress bar |
+| `/reset` | Kill and reset the cubicle |
+
+**Operator-only commands:**
+| Command | Description |
+|---------|-------------|
+| `/containers` | List all running containers |
+| `/agents` | List all registered agents |
+
+> **Tip:** Most operations can be done via Telegram. The web dashboard is primarily for initial setup and configuration.
+
 ## Configuration
 
 ### Environment Variables
