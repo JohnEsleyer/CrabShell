@@ -124,7 +124,30 @@ export async function handleTelegramUpdate(token: string, update: TelegramUpdate
         console.log(`  Username: @${username}`);
         console.log(`  First Name: ${firstName}`);
         console.log(`  Add this user to allowlist in dashboard to grant access.`);
-        return `Unauthorized access. Your Telegram User ID is: ${userId}\n\nPlease provide this ID to the administrator to get access.`;
+        
+        return `🔒 *Access Required*
+
+Your Telegram ID: \`${userId}\`
+
+To get access, follow these steps:
+
+*Step 1:* Open your web browser and go to the HermitClaw Dashboard (ask your admin for the link)
+
+*Step 2:* Log in with your admin credentials
+
+*Step 3:* Click "Allowlist" in the left sidebar menu
+
+*Step 4:* Click the "Add User" button
+
+*Step 5:* Enter your Telegram ID: \`${userId}\`
+
+*Step 6:* Click "Add User" to save
+
+*Step 7:* Come back here and send /start again
+
+---
+
+💡 *Tip:* You can also ask the admin to add you. Just send them this message with your ID: \`${userId}\``;
     }
 
     if (!await canSpend(agent.id)) {
