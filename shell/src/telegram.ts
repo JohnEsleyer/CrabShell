@@ -1,5 +1,5 @@
 import { getAgentByToken, isAllowed, getBudget, updateSpend, canSpend, updateAuditLog, getAgentById, getSetting } from './db';
-import { spawnAgent, docker } from './docker';
+import { spawnAgent, docker, getCubicleStatus, stopCubicle, removeCubicle } from './docker';
 
 interface TelegramUpdate {
     message?: {
@@ -16,6 +16,74 @@ interface TelegramUpdate {
             message_id: number;
         };
     };
+}
+
+const TELEGRAM_MAX_LENGTH = 4000;
+
+export async function sendChatAction(token: string, chatId: number, action: 'typing' | 'upload_document' = 'typing'): Promise<void> {
+    const url = `https://api.telegram.org/bot${token}/sendChatAction`;
+    
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                action: action
+            })
+        });
+    } catch (err) {
+        console.error('Failed to send chat action:', err);
+    }
+}
+
+export async function smartReply(token: string, chatId: number, text: string): Promise<void> {
+    if (text.length > TELEGRAM_MAX_LENGTH) {
+        const buffer = Buffer.from(text, 'utf-8');
+        const url = `https://api.telegram.org/bot${token}/sendDocument`;
+        
+        const formData = new FormData();
+        formData.append('chat_id', String(chatId));
+        formData.append('document', new Blob([buffer], { type: 'text/plain' }), 'output.txt');
+        formData.append('caption', '📄 Output was too long, sent as file.');
+        
+        try {
+            await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+        } catch (err) {
+            console.error('Failed to send document:', err);
+            const chunks = splitMessage(text);
+            for (const chunk of chunks) {
+                await sendTelegramMessage(token, chatId, chunk);
+            }
+        }
+    } else {
+        await sendTelegramMessage(token, chatId, text);
+    }
+}
+
+function splitMessage(text: string, maxLength: number = TELEGRAM_MAX_LENGTH): string[] {
+    const chunks: string[] = [];
+    let remaining = text;
+    
+    while (remaining.length > maxLength) {
+        let splitPoint = maxLength;
+        const newlineIndex = remaining.lastIndexOf('\n', maxLength);
+        if (newlineIndex > maxLength * 0.5) {
+            splitPoint = newlineIndex + 1;
+        }
+        
+        chunks.push(remaining.slice(0, splitPoint));
+        remaining = remaining.slice(splitPoint);
+    }
+    
+    if (remaining.length > 0) {
+        chunks.push(remaining);
+    }
+    
+    return chunks;
 }
 
 export async function handleTelegramUpdate(token: string, update: TelegramUpdate): Promise<string | null> {
@@ -52,7 +120,49 @@ export async function handleTelegramUpdate(token: string, update: TelegramUpdate
     const text = update.message.text;
     const chatId = update.message.chat.id;
 
+    if (text === '/status') {
+        const status = await getCubicleStatus(agent.id, userId);
+        if (!status) {
+            return `📊 No active cubicle for ${agent.name}.`;
+        }
+        return `📊 Cubicle Status: *${status.status}*\nContainer: \`${status.containerId?.slice(0, 12) || 'N/A'}\``;
+    }
+
+    if (text === '/reset') {
+        const status = await getCubicleStatus(agent.id, userId);
+        if (status?.containerId) {
+            await removeCubicle(status.containerId);
+            return `🔄 Cubicle reset. A fresh container will be created on your next message.`;
+        }
+        return `📊 No cubicle to reset.`;
+    }
+
+    if (text === '/budget') {
+        const budget = await getBudget(agent.id);
+        if (budget) {
+            return `💰 Budget for ${agent.name}:\nLimit: $${budget.daily_limit_usd.toFixed(2)}/day\nSpent: $${budget.current_spend_usd.toFixed(4)}`;
+        }
+        return `Budget info not available.`;
+    }
+
     console.log(`[${agent.name}] Processing: ${text}`);
+
+    return null;
+}
+
+export async function processAgentMessage(
+    token: string,
+    chatId: number,
+    userId: number,
+    text: string,
+    thinkingMessageId?: number
+): Promise<{ output: string; messageId?: number }> {
+    const agent = await getAgentByToken(token);
+    if (!agent) {
+        return { output: 'Agent not found.' };
+    }
+
+    await sendChatAction(token, chatId, 'typing');
 
     try {
         const result = await spawnAgent({
@@ -63,16 +173,17 @@ export async function handleTelegramUpdate(token: string, update: TelegramUpdate
             userMessage: text,
             history: [],
             maxTokens: 1000,
-            requireApproval: agent.require_approval === 1
+            requireApproval: agent.require_approval === 1,
+            userId: userId
         });
 
         const estimatedCost = result.output.length * 0.00001;
         await updateSpend(agent.id, estimatedCost);
 
-        return result.output;
+        return { output: result.output };
     } catch (error: any) {
         console.error(`[${agent.name}] Error:`, error);
-        return `Error: ${error.message}`;
+        return { output: `Error: ${error.message}` };
     }
 }
 
@@ -128,6 +239,27 @@ async function handleCallbackQuery(token: string, query: TelegramUpdate['callbac
     return null;
 }
 
+export async function sendVerificationCode(token: string, chatId: number, code: string): Promise<boolean> {
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: `🛡️ *HermitClaw Agent Verification*\n\nYou are linking this bot to the Orchestrator.\n\nYour verification code is: \`${code}\`\n\nEnter this code in the dashboard to complete setup.`,
+                parse_mode: 'Markdown'
+            })
+        });
+        
+        return response.ok;
+    } catch (err) {
+        console.error('Failed to send verification code:', err);
+        return false;
+    }
+}
+
 export async function sendApprovalRequest(
     agentId: number,
     containerId: string,
@@ -137,9 +269,13 @@ export async function sendApprovalRequest(
     const agent = await getAgentById(agentId);
     if (!agent) return;
 
-    const adminChatId = await getSetting('admin_chat_id');
+    let adminChatId = await getSetting('operator_telegram_id');
     if (!adminChatId) {
-        console.log('No admin chat ID configured');
+        adminChatId = await getSetting('admin_chat_id');
+    }
+    
+    if (!adminChatId) {
+        console.log('No operator/admin chat ID configured');
         return;
     }
 
@@ -167,31 +303,64 @@ export async function sendApprovalRequest(
     });
 }
 
-export async function sendTelegramMessage(token: string, chatId: number, text: string): Promise<void> {
+export async function sendTelegramMessage(token: string, chatId: number, text: string): Promise<number | undefined> {
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
     
-    await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            chat_id: chatId,
-            text: text,
-            parse_mode: 'Markdown'
-        })
-    });
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: text,
+                parse_mode: 'Markdown'
+            })
+        });
+        
+        const data = await response.json() as { ok: boolean; result?: { message_id: number } };
+        return data.result?.message_id;
+    } catch (err) {
+        console.error('Failed to send Telegram message:', err);
+        return undefined;
+    }
 }
 
-async function editMessageText(token: string, chatId: number, messageId: number, text: string): Promise<void> {
+export async function editMessageText(token: string, chatId: number, messageId: number, text: string): Promise<void> {
     const url = `https://api.telegram.org/bot${token}/editMessageText`;
     
-    await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            chat_id: chatId,
-            message_id: messageId,
-            text: text,
-            parse_mode: 'Markdown'
-        })
-    });
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                message_id: messageId,
+                text: text,
+                parse_mode: 'Markdown'
+            })
+        });
+    } catch (err) {
+        console.error('Failed to edit message:', err);
+    }
+}
+
+export async function setBotCommands(token: string): Promise<void> {
+    const url = `https://api.telegram.org/bot${token}/setMyCommands`;
+    
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                commands: [
+                    { command: 'start', description: 'Start the bot' },
+                    { command: 'status', description: 'Check cubicle status' },
+                    { command: 'reset', description: 'Reset the cubicle' },
+                    { command: 'budget', description: 'Check remaining budget' }
+                ]
+            })
+        });
+    } catch (err) {
+        console.error('Failed to set bot commands:', err);
+    }
 }

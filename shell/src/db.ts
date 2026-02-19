@@ -48,6 +48,7 @@ export interface AllowlistUser {
     user_id: number;
     username: string;
     first_name: string;
+    is_operator: number;
     added_at: string;
 }
 
@@ -91,6 +92,7 @@ export async function initDb(): Promise<void> {
             user_id INTEGER PRIMARY KEY,
             username TEXT,
             first_name TEXT,
+            is_operator INTEGER DEFAULT 0,
             added_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -146,6 +148,8 @@ export async function initDb(): Promise<void> {
         INSERT OR IGNORE INTO settings (key, value) VALUES ('public_url', '');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('default_daily_limit', '1.00');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('hitl_enabled', 'false');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('operator_telegram_id', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_chat_id', '');
         
         INSERT OR IGNORE INTO settings (key, value) VALUES ('openai_api_key', '');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('openai_model', 'gpt-4o');
@@ -316,12 +320,33 @@ export async function getAllowlist(): Promise<AllowlistUser[]> {
     return rs.rows as unknown as AllowlistUser[];
 }
 
-export async function addToAllowlist(userId: number, username?: string, firstName?: string): Promise<void> {
+export async function addToAllowlist(userId: number, username?: string, firstName?: string, isOperator: boolean = false): Promise<void> {
     const db = await getClient();
     await db.execute({
-        sql: 'INSERT OR IGNORE INTO allowlist (user_id, username, first_name) VALUES (?, ?, ?)',
-        args: [userId, username || null, firstName || null]
+        sql: 'INSERT OR REPLACE INTO allowlist (user_id, username, first_name, is_operator) VALUES (?, ?, ?, ?)',
+        args: [userId, username || null, firstName || null, isOperator ? 1 : 0]
     });
+}
+
+export async function setOperator(userId: number): Promise<void> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'UPDATE allowlist SET is_operator = 0'
+    });
+    await db.execute({
+        sql: 'UPDATE allowlist SET is_operator = 1 WHERE user_id = ?',
+        args: [userId]
+    });
+    await setSetting('operator_telegram_id', String(userId));
+}
+
+export async function getOperator(): Promise<AllowlistUser | null> {
+    const db = await getClient();
+    const rs = await db.execute({ sql: 'SELECT * FROM allowlist WHERE is_operator = 1' });
+    if (rs.rows.length > 0) {
+        return rs.rows[0] as unknown as AllowlistUser;
+    }
+    return null;
 }
 
 export async function removeFromAllowlist(userId: number): Promise<void> {

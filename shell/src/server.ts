@@ -1,11 +1,11 @@
-import { handleTelegramUpdate, sendTelegramMessage } from './telegram';
+import { handleTelegramUpdate, sendTelegramMessage, smartReply, processAgentMessage, sendVerificationCode, setBotCommands } from './telegram';
 import { 
     getAllAgents, isAllowed, initDb, getAdminCount, createAdmin, getAdmin,
     getAllSettings, setSetting, getBudget, getAllowlist, addToAllowlist, removeFromAllowlist,
     getTotalSpend, getAllBudgets, updateAgent, deleteAgent, updateBudget, createAgent,
-    getAuditLogs, getAgentById
+    getAuditLogs, getAgentById, getSetting, setOperator, getOperator
 } from './db';
-import { checkDocker, listContainers, getContainerExec, docker, spawnAgent } from './docker';
+import { checkDocker, listContainers, getContainerExec, docker, spawnAgent, hibernateIdleContainers, cleanupOldContainers } from './docker';
 import { hashPassword, verifyPassword, generateSessionToken } from './auth';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -13,6 +13,9 @@ import cookie from '@fastify/cookie';
 
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'hermit-secret-change-in-production';
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'hermit-webhook-secret';
+
+const pendingVerifications = new Map<string, { code: string; timestamp: number }>();
 
 export async function startServer() {
     await initDb();
@@ -55,23 +58,28 @@ export async function startServer() {
             return { status: 'setup_required' };
         }
         
+        const operator = await getOperator();
         const token = request.cookies.hermit_session;
         if (token) {
-            return { status: 'authenticated' };
+            return { status: 'authenticated', hasOperator: !!operator };
         }
         
-        return { status: 'login_required' };
+        return { status: 'login_required', hasOperator: !!operator };
     });
 
     fastify.post('/api/auth/setup', async (request: any, reply: any) => {
         const count = await getAdminCount();
         if (count > 0) return reply.code(403).send({ error: 'Setup already completed' });
 
-        const { username, password } = request.body;
+        const { username, password, operator_telegram_id } = request.body;
         if (!username || !password) return reply.code(400).send({ error: 'Missing credentials' });
 
         const { hash, salt } = hashPassword(password);
         await createAdmin(username, hash, salt);
+
+        if (operator_telegram_id) {
+            await addToAllowlist(Number(operator_telegram_id), 'operator', 'Operator', true);
+        }
 
         return { message: 'Admin created. Please login.' };
     });
@@ -117,6 +125,7 @@ export async function startServer() {
         const agents = await getAllAgents();
         const totalSpend = await getTotalSpend();
         const allowlist = await getAllowlist();
+        const operator = await getOperator();
         
         return {
             dockerStatus: dockerOk ? 'online' : 'offline',
@@ -125,6 +134,7 @@ export async function startServer() {
             activeAgents: agents.filter(a => a.is_active).length,
             totalSpendToday: totalSpend,
             allowlistCount: allowlist.length,
+            operator: operator,
             agents: agents.map(a => ({
                 ...a,
                 budget: a.budget || { daily_limit_usd: 1, current_spend_usd: 0 }
@@ -158,9 +168,20 @@ export async function startServer() {
     });
 
     fastify.post('/api/allowlist', async (request: any) => {
-        const { user_id, username, first_name } = request.body;
+        const { user_id, username, first_name, is_operator } = request.body;
         if (!user_id) return { error: 'user_id required' };
-        await addToAllowlist(Number(user_id), username, first_name);
+        await addToAllowlist(Number(user_id), username, first_name, is_operator === true);
+        
+        if (is_operator) {
+            await setOperator(Number(user_id));
+        }
+        
+        return { success: true };
+    });
+    
+    fastify.post('/api/allowlist/set-operator/:userId', async (request: any) => {
+        const userId = Number(request.params.userId);
+        await setOperator(userId);
         return { success: true };
     });
 
@@ -188,12 +209,15 @@ export async function startServer() {
             });
         }
 
-        const webhookUrl = `${baseUrl}/webhook/${token}`;
-        const tgUrl = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}`;
+        const webhookUrl = `${baseUrl}/webhook/${token}?secret=${encodeURIComponent(WEBHOOK_SECRET)}`;
+        const tgUrl = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&secret_token=${encodeURIComponent(WEBHOOK_SECRET)}`;
         
         try {
             const response = await fetch(tgUrl);
             const data = await response.json();
+            
+            await setBotCommands(token);
+            
             return data;
         } catch (e: any) {
             return reply.code(500).send({ error: e.message });
@@ -211,6 +235,64 @@ export async function startServer() {
                 budget: budget || { daily_limit_usd: 1, current_spend_usd:0 }
             };
         });
+    });
+
+    fastify.post('/api/agents/request-verification', async (request: any, reply: any) => {
+        const { token } = request.body;
+        
+        const operatorId = await getSetting('operator_telegram_id');
+        if (!operatorId) {
+            return reply.code(400).send({ error: 'Operator Telegram ID not set. Please configure it in Settings or during initial setup.' });
+        }
+
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        pendingVerifications.set(token, { code, timestamp: Date.now() });
+
+        try {
+            const sent = await sendVerificationCode(token, Number(operatorId), code);
+            if (!sent) {
+                return reply.code(400).send({ error: 'Failed to send verification code. Make sure the bot token is valid and you have started a conversation with the bot.' });
+            }
+            return { success: true, message: 'Verification code sent to operator Telegram.' };
+        } catch (e: any) {
+            return reply.code(400).send({ error: `Failed to send verification code: ${e.message}. Make sure you have sent /start to the bot first.` });
+        }
+    });
+
+    fastify.post('/api/agents/confirm-verification', async (request: any, reply: any) => {
+        const { token, code, agentData } = request.body;
+        
+        const pending = pendingVerifications.get(token);
+        
+        if (!pending) {
+            return reply.code(400).send({ error: 'No pending verification for this token. Please request a new verification code.' });
+        }
+        
+        if (Date.now() - pending.timestamp > 10 * 60 * 1000) {
+            pendingVerifications.delete(token);
+            return reply.code(400).send({ error: 'Verification code expired. Please request a new one.' });
+        }
+        
+        if (pending.code !== code) {
+            return reply.code(400).send({ error: 'Invalid verification code.' });
+        }
+
+        try {
+            const id = await createAgent({
+                name: agentData.name,
+                role: agentData.role || '',
+                telegram_token: token,
+                system_prompt: agentData.system_prompt || '',
+                docker_image: agentData.docker_image || 'hermit/base:latest',
+                is_active: agentData.is_active !== undefined ? agentData.is_active : 1,
+                require_approval: agentData.require_approval || 0
+            });
+            
+            pendingVerifications.delete(token);
+            return { success: true, id };
+        } catch (e: any) {
+            return reply.code(500).send({ error: `Failed to create agent: ${e.message}` });
+        }
     });
 
     fastify.post('/api/agents', async (request: any) => {
@@ -283,22 +365,48 @@ export async function startServer() {
         return { message: 'Use POST /webhook/:token for Telegram updates' };
     });
 
-    fastify.post('/webhook/:token', async (request: any, _reply: any) => {
+    fastify.post('/webhook/:token', async (request: any, reply: any) => {
+        const requestSecret = request.query.secret;
+        const headerSecret = request.headers['x-telegram-bot-api-secret-token'];
+        
+        if (requestSecret !== WEBHOOK_SECRET && headerSecret !== WEBHOOK_SECRET) {
+            return reply.code(403).send({ error: 'Forbidden: Invalid webhook secret' });
+        }
+        
         try {
             const token = request.params.token;
             const update = request.body as any;
             
+            reply.send({ ok: true });
+            
             const chatId = update.message?.chat?.id || update.callback_query?.message?.chat?.id;
-            const response = await handleTelegramUpdate(token, update);
-
-            if (response && chatId) {
-                await sendTelegramMessage(token, chatId, response);
+            const userId = update.message?.from?.id || update.callback_query?.from?.id;
+            
+            const immediateResponse = await handleTelegramUpdate(token, update);
+            
+            if (immediateResponse && chatId) {
+                await sendTelegramMessage(token, chatId, immediateResponse);
+                return;
+            }
+            
+            if (update.message?.text && chatId && userId) {
+                const text = update.message.text;
+                
+                if (!text.startsWith('/')) {
+                    const thinkingMsg = await sendTelegramMessage(token, chatId, `🔄 *${update.message.from?.first_name || 'Agent'} is thinking...*`);
+                    
+                    const result = await processAgentMessage(token, chatId, userId, text, thinkingMsg);
+                    
+                    if (thinkingMsg) {
+                        await smartReply(token, chatId, result.output);
+                    } else {
+                        await smartReply(token, chatId, result.output);
+                    }
+                }
             }
 
-            return { ok: true };
         } catch (error) {
             console.error('Error handling webhook:', error);
-            return { ok: false, error: 'Internal error' };
         }
     });
 
@@ -319,6 +427,26 @@ export async function startServer() {
         } catch (e: any) {
             return reply.code(500).send({ error: e.message });
         }
+    });
+
+    fastify.post('/api/containers/:id/remove', async (request: any, reply: any) => {
+        const containerId = request.params.id;
+        try {
+            const container = docker.getContainer(containerId);
+            await container.remove({ force: true });
+            return { success: true };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.post('/api/reaper/run', async (request: any, reply: any) => {
+        const { idleMinutes, maxAgeHours } = request.body || {};
+        
+        const hibernated = await hibernateIdleContainers(idleMinutes || 30);
+        const removed = await cleanupOldContainers(maxAgeHours || 48);
+        
+        return { hibernated, removed, success: true };
     });
 
     fastify.get('/api/terminal/:containerId', { websocket: true }, async (connection: any, req: any) => {
@@ -390,6 +518,27 @@ export async function startServer() {
     fastify.get('/', async (_request: any, reply: any) => {
         return reply.redirect('/dashboard/');
     });
+
+    setInterval(async () => {
+        try {
+            const hibernated = await hibernateIdleContainers(30);
+            const removed = await cleanupOldContainers(48);
+            if (hibernated > 0 || removed > 0) {
+                console.log(`[Reaper] Hibernated ${hibernated} containers, removed ${removed} old containers`);
+            }
+        } catch (err) {
+            console.error('[Reaper] Error:', err);
+        }
+    }, 15 * 60 * 1000);
+
+    setInterval(() => {
+        const now = Date.now();
+        for (const [token, data] of pendingVerifications.entries()) {
+            if (now - data.timestamp > 10 * 60 * 1000) {
+                pendingVerifications.delete(token);
+            }
+        }
+    }, 60 * 1000);
 
     await fastify.listen({ port: Number(PORT), host: '0.0.0.0' });
     console.log(`🦀 Shell listening on port ${PORT}`);

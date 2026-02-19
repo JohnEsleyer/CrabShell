@@ -6,6 +6,18 @@ COPY src ./src
 RUN RUSTFLAGS="-C target-feature=+crt-static" cargo build --release --target x86_64-unknown-linux-musl
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r hermit && useradd -r -g hermit -m -d /home/hermit hermit
+
+RUN mkdir -p /app/workspace && chown -R hermit:hermit /app
+
 COPY --from=builder /usr/src/crab/target/x86_64-unknown-linux-musl/release/hermit-crab /usr/local/bin/crab
+
+USER hermit
+WORKDIR /app
+
 CMD ["crab"]

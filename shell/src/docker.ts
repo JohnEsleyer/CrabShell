@@ -1,7 +1,7 @@
 import Docker from 'dockerode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createAuditLog, getAgentById, getAllSettings } from './db';
+import { createAuditLog, getAgentById, getAllSettings, getSetting } from './db';
 import { sendApprovalRequest } from './telegram';
 
 let docker: Docker;
@@ -26,6 +26,7 @@ interface AgentConfig {
     history: Message[];
     maxTokens: number;
     requireApproval?: boolean;
+    userId?: number;
 }
 
 interface SpawnResult {
@@ -33,11 +34,98 @@ interface SpawnResult {
     output: string;
 }
 
-const HISTORY_DIR = path.join(__dirname, '../../data/history_buffer');
-if (!fs.existsSync(HISTORY_DIR)) fs.mkdirSync(HISTORY_DIR, { recursive: true });
+interface CubicleInfo {
+    id: string;
+    state: string;
+    labels: Record<string, string>;
+    created: number;
+}
 
-export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
+const HISTORY_DIR = path.join(__dirname, '../../data/history_buffer');
+const WORKSPACE_DIR = path.join(__dirname, '../../data/workspaces');
+const CACHE_DIR = path.join(__dirname, '../../data/cache');
+
+[HISTORY_DIR, WORKSPACE_DIR, CACHE_DIR].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+
+const LABEL_PREFIX = 'hermitclaw.';
+const LABELS = {
+    AGENT_ID: `${LABEL_PREFIX}agent_id`,
+    USER_ID: `${LABEL_PREFIX}user_id`,
+    LAST_ACTIVE: `${LABEL_PREFIX}last_active`,
+    STATUS: `${LABEL_PREFIX}status`,
+    CREATED_AT: `${LABEL_PREFIX}created_at`
+};
+
+async function findContainerByLabels(agentId: number, userId: number): Promise<CubicleInfo | null> {
+    const containers = await docker.listContainers({ all: true });
+    
+    for (const container of containers) {
+        const labels = container.Labels || {};
+        if (labels[LABELS.AGENT_ID] === String(agentId) && labels[LABELS.USER_ID] === String(userId)) {
+            return {
+                id: container.Id,
+                state: container.State,
+                labels: labels as Record<string, string>,
+                created: container.Created
+            };
+        }
+    }
+    return null;
+}
+
+export async function getOrCreateCubicle(config: AgentConfig): Promise<Docker.Container> {
+    const userId = config.userId || 0;
+    const existing = await findContainerByLabels(config.agentId, userId);
+    
+    if (existing) {
+        const container = docker.getContainer(existing.id);
+        
+        if (existing.state === 'running') {
+            await updateContainerLastActive(existing.id);
+            console.log(`[Cubicle] Reusing running container ${existing.id.slice(0, 12)}`);
+            return container;
+        } else if (existing.state === 'exited' || existing.state === 'created') {
+            console.log(`[Cubicle] Waking up hibernated container ${existing.id.slice(0, 12)}`);
+            await container.start();
+            await updateContainerLastActive(existing.id);
+            return container;
+        }
+    }
+    
+    return await createNewCubicle(config);
+}
+
+async function updateContainerLastActive(containerId: string): Promise<void> {
+    try {
+        const container = docker.getContainer(containerId);
+        const now = new Date().toISOString();
+        
+        const existingInfo = await container.inspect();
+        const existingLabels = existingInfo.Config?.Labels || {};
+        
+        await container.update({
+            Labels: {
+                ...existingLabels,
+                [LABELS.LAST_ACTIVE]: now,
+                [LABELS.STATUS]: 'active'
+            }
+        });
+    } catch (err) {
+        console.error('Failed to update container last_active:', err);
+    }
+}
+
+async function createNewCubicle(config: AgentConfig): Promise<Docker.Container> {
     const imageName = config.dockerImage || 'hermit/base:latest';
+    const userId = config.userId || 0;
+    const workspaceId = `${config.agentId}_${userId}`;
+    const workspacePath = path.join(WORKSPACE_DIR, workspaceId);
+    
+    if (!fs.existsSync(workspacePath)) {
+        fs.mkdirSync(workspacePath, { recursive: true });
+    }
     
     const historyFile = path.join(HISTORY_DIR, `${config.agentId}_${Date.now()}.json`);
     try {
@@ -67,7 +155,6 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
         envVars.push('HITL_ENABLED=true');
     }
 
-    // Pass API keys from settings (prefer settings over env vars)
     const providerKeyMap: Record<string, { key: string; env: string }> = {
         'openai': { key: 'openai_api_key', env: 'OPENAI_API_KEY' },
         'anthropic': { key: 'anthropic_api_key', env: 'ANTHROPIC_API_KEY' },
@@ -79,7 +166,6 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
         'xai': { key: 'xai_api_key', env: 'XAI_API_KEY' },
     };
 
-    // Pass all available API keys to the container
     for (const [prov, mapping] of Object.entries(providerKeyMap)) {
         const settingKey = settings[mapping.key];
         const envValue = settingKey || process.env[mapping.env];
@@ -88,37 +174,69 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
         }
     }
 
-    // Legacy support for MODEL env var
     if (process.env.MODEL) {
         envVars.push(`MODEL=${process.env.MODEL}`);
     }
 
+    const now = new Date().toISOString();
+    
+    const binds = [
+        `${historyFile}:/app/history.json:ro`,
+        `${workspacePath}:/app/workspace:rw`,
+    ];
+    
+    const pipCachePath = path.join(CACHE_DIR, 'pip');
+    const npmCachePath = path.join(CACHE_DIR, 'npm');
+    
+    if (!fs.existsSync(pipCachePath)) fs.mkdirSync(pipCachePath, { recursive: true });
+    if (!fs.existsSync(npmCachePath)) fs.mkdirSync(npmCachePath, { recursive: true });
+    
+    binds.push(`${pipCachePath}:/root/.cache/pip:rw`);
+    binds.push(`${npmCachePath}:/root/.npm:rw`);
+
+    const createdContainer = await docker.createContainer({
+        Image: imageName,
+        Env: envVars,
+        Cmd: ['crab'],
+        HostConfig: {
+            AutoRemove: false,
+            Memory: 512 * 1024 * 1024,
+            CpuQuota: 100000,
+            PidsLimit: 100,
+            NetworkMode: 'bridge',
+            Binds: binds,
+        },
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: false,
+        Labels: {
+            [LABELS.AGENT_ID]: String(config.agentId),
+            [LABELS.USER_ID]: String(userId),
+            [LABELS.LAST_ACTIVE]: now,
+            [LABELS.STATUS]: 'active',
+            [LABELS.CREATED_AT]: now,
+        }
+    });
+
+    console.log(`[Cubicle] Created new container ${createdContainer.id.slice(0, 12)} for agent ${config.agentId}`);
+    
+    await createdContainer.start();
+    
+    try {
+        fs.unlinkSync(historyFile);
+    } catch {}
+    
+    return createdContainer;
+}
+
+export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
     let container: Docker.Container | undefined;
     let containerId = '';
     
     try {
-        const createdContainer = await docker.createContainer({
-            Image: imageName,
-            Env: envVars,
-            Cmd: ['crab'],
-            HostConfig: {
-                AutoRemove: true,
-                Memory: 512 * 1024 * 1024,
-                CpuQuota: 100000,
-                PidsLimit: 100,
-                NetworkMode: 'bridge',
-                Binds: [`${historyFile}:/app/history.json:ro`],
-            },
-            AttachStdout: true,
-            AttachStderr: true,
-            Tty: false
-        });
-
-        container = createdContainer;
+        container = await getOrCreateCubicle(config);
         const currentContainerId = container.id;
         containerId = currentContainerId;
-
-        await container.start();
 
         return await new Promise((resolve, reject) => {
             let output = '';
@@ -127,6 +245,7 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
             const timeout = setTimeout(async () => {
                 try {
                     if (container) await container.stop();
+                    await updateContainerLastActive(currentContainerId);
                 } catch {}
                 const lines = output.split('\n').filter((l: string) => l.trim() && !l.startsWith('{'));
                 resolve({
@@ -190,9 +309,10 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
                     }
                 });
 
-                stream.on('end', () => {
+                stream.on('end', async () => {
                     clearTimeout(timeout);
                     cleanup();
+                    await updateContainerLastActive(currentContainerId);
                     const lines = output.split('\n').filter((l: string) => l.trim() && !l.startsWith('{'));
                     resolve({
                         containerId: currentContainerId,
@@ -200,35 +320,115 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
                     });
                 });
 
-                stream.on('error', (err: Error) => {
+                stream.on('error', async (err: Error) => {
                     clearTimeout(timeout);
                     cleanup();
+                    await updateContainerLastActive(currentContainerId);
                     reject(err);
                 });
             });
 
-            function cleanup() {
-                try {
-                    fs.unlinkSync(historyFile);
-                } catch {}
-            }
+            function cleanup() {}
         });
     } catch (error: any) {
         console.error('Docker Spawn Error:', error);
-        try {
-            if (container) await container.remove({ force: true });
-        } catch {}
-        try {
-            fs.unlinkSync(historyFile);
-        } catch {}
         throw new Error(`Failed to spawn cubicle: ${error.message}`);
     }
+}
+
+export async function stopCubicle(containerId: string): Promise<void> {
+    try {
+        const container = docker.getContainer(containerId);
+        await container.stop();
+        console.log(`[Cubicle] Stopped container ${containerId.slice(0, 12)}`);
+    } catch (err) {
+        console.error('Failed to stop container:', err);
+    }
+}
+
+export async function removeCubicle(containerId: string): Promise<void> {
+    try {
+        const container = docker.getContainer(containerId);
+        await container.remove({ force: true });
+        console.log(`[Cubicle] Removed container ${containerId.slice(0, 12)}`);
+    } catch (err) {
+        console.error('Failed to remove container:', err);
+    }
+}
+
+export async function hibernateIdleContainers(idleThresholdMinutes: number = 30): Promise<number> {
+    const containers = await docker.listContainers({ all: false });
+    const now = Date.now();
+    let hibernatedCount = 0;
+    
+    for (const containerInfo of containers) {
+        const labels = containerInfo.Labels || {};
+        
+        if (!labels[LABELS.AGENT_ID]) continue;
+        
+        const lastActive = labels[LABELS.LAST_ACTIVE];
+        if (!lastActive) continue;
+        
+        const lastActiveTime = new Date(lastActive).getTime();
+        const idleMinutes = (now - lastActiveTime) / (1000 * 60);
+        
+        if (idleMinutes > idleThresholdMinutes) {
+            try {
+                await stopCubicle(containerInfo.Id);
+                hibernatedCount++;
+            } catch (err) {
+                console.error(`Failed to hibernate ${containerInfo.Id.slice(0, 12)}:`, err);
+            }
+        }
+    }
+    
+    return hibernatedCount;
+}
+
+export async function cleanupOldContainers(maxAgeHours: number = 48): Promise<number> {
+    const containers = await docker.listContainers({ all: true });
+    const now = Date.now();
+    let removedCount = 0;
+    
+    for (const containerInfo of containers) {
+        const labels = containerInfo.Labels || {};
+        
+        if (!labels[LABELS.AGENT_ID]) continue;
+        
+        const createdAt = labels[LABELS.CREATED_AT];
+        if (!createdAt) continue;
+        
+        const createdTime = new Date(createdAt).getTime();
+        const ageHours = (now - createdTime) / (1000 * 60 * 60);
+        
+        if (ageHours > maxAgeHours) {
+            try {
+                await removeCubicle(containerInfo.Id);
+                removedCount++;
+            } catch (err) {
+                console.error(`Failed to remove ${containerInfo.Id.slice(0, 12)}:`, err);
+            }
+        }
+    }
+    
+    return removedCount;
+}
+
+export async function getCubicleStatus(agentId: number, userId: number): Promise<{ status: string; containerId?: string } | null> {
+    const container = await findContainerByLabels(agentId, userId);
+    if (!container) return null;
+    
+    return {
+        status: container.state,
+        containerId: container.id
+    };
 }
 
 export async function listContainers(): Promise<Docker.ContainerInfo[]> {
     const containers = await docker.listContainers({ all: true });
     return containers.filter(c => 
-        c.Image && (c.Image.startsWith('hermit/') || c.Image.startsWith('hermit-crab'))
+        c.Image && (c.Image.startsWith('hermit/') || c.Image.startsWith('hermit-crab')) ||
+        (c.Labels && c.Labels[LABELS.AGENT_ID])
     );
 }
 
