@@ -146,6 +146,23 @@ export async function initDb(): Promise<void> {
         INSERT OR IGNORE INTO settings (key, value) VALUES ('public_url', '');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('default_daily_limit', '1.00');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('hitl_enabled', 'false');
+        
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('openai_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('openai_model', 'gpt-4o');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('anthropic_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('anthropic_model', 'claude-3-5-sonnet-20241022');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('google_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('google_model', 'gemini-1.5-pro');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('groq_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('groq_model', 'llama-3.3-70b-versatile');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_model', 'anthropic/claude-3.5-sonnet');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('mistral_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('mistral_model', 'mistral-large-latest');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('deepseek_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('deepseek_model', 'deepseek-chat');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('xai_api_key', '');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('xai_model', 'grok-beta');
     `);
 }
 

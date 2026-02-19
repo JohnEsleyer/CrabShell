@@ -1,7 +1,7 @@
 import Docker from 'dockerode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createAuditLog, getAgentById } from './db';
+import { createAuditLog, getAgentById, getAllSettings } from './db';
 import { sendApprovalRequest } from './telegram';
 
 let docker: Docker;
@@ -47,6 +47,10 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
         throw new Error('Failed to create history buffer');
     }
 
+    const settings = await getAllSettings();
+    const provider = settings.default_provider || 'openrouter';
+    const model = settings.default_model || 'auto';
+
     const envVars = [
         `AGENT_ID=${config.agentId}`,
         `USER_MSG=${config.userMessage}`,
@@ -55,18 +59,38 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
         `AGENT_ROLE=${config.agentRole}`,
         `DOCKER_IMAGE=${config.dockerImage}`,
         `HISTORY_FILE=/app/history.json`,
-        `MODEL=${process.env.MODEL || 'auto'}`,
+        `LLM_PROVIDER=${provider}`,
+        `LLM_MODEL=${model}`,
     ];
 
     if (config.requireApproval) {
         envVars.push('HITL_ENABLED=true');
     }
 
-    if (process.env.OPENAI_API_KEY) {
-        envVars.push(`OPENAI_API_KEY=${process.env.OPENAI_API_KEY}`);
+    // Pass API keys from settings (prefer settings over env vars)
+    const providerKeyMap: Record<string, { key: string; env: string }> = {
+        'openai': { key: 'openai_api_key', env: 'OPENAI_API_KEY' },
+        'anthropic': { key: 'anthropic_api_key', env: 'ANTHROPIC_API_KEY' },
+        'google': { key: 'google_api_key', env: 'GOOGLE_API_KEY' },
+        'groq': { key: 'groq_api_key', env: 'GROQ_API_KEY' },
+        'openrouter': { key: 'openrouter_api_key', env: 'OPENROUTER_API_KEY' },
+        'mistral': { key: 'mistral_api_key', env: 'MISTRAL_API_KEY' },
+        'deepseek': { key: 'deepseek_api_key', env: 'DEEPSEEK_API_KEY' },
+        'xai': { key: 'xai_api_key', env: 'XAI_API_KEY' },
+    };
+
+    // Pass all available API keys to the container
+    for (const [prov, mapping] of Object.entries(providerKeyMap)) {
+        const settingKey = settings[mapping.key];
+        const envValue = settingKey || process.env[mapping.env];
+        if (envValue) {
+            envVars.push(`${mapping.env}=${envValue}`);
+        }
     }
-    if (process.env.OPENROUTER_API_KEY) {
-        envVars.push(`OPENROUTER_API_KEY=${process.env.OPENROUTER_API_KEY}`);
+
+    // Legacy support for MODEL env var
+    if (process.env.MODEL) {
+        envVars.push(`MODEL=${process.env.MODEL}`);
     }
 
     let container: Docker.Container | undefined;

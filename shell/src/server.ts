@@ -143,6 +143,16 @@ export async function startServer() {
         return { success: true };
     });
 
+    fastify.post('/api/settings/batch', async (request: any) => {
+        const settings = request.body;
+        for (const [key, value] of Object.entries(settings)) {
+            if (value !== undefined && value !== null) {
+                await setSetting(key, String(value));
+            }
+        }
+        return { success: true };
+    });
+
     fastify.get('/api/allowlist', async () => {
         return await getAllowlist();
     });
