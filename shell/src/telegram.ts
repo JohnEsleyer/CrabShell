@@ -2,6 +2,9 @@ import { getAgentByToken, isAllowed, getBudget, updateSpend, canSpend, updateAud
 import { spawnAgent, docker, getCubicleStatus, stopCubicle, removeCubicle, listContainers } from './docker';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
+import { loadHistory, saveHistory } from './history';
+import { setPreviewPassword } from './server';
 
 interface TelegramUpdate {
     message?: {
@@ -357,6 +360,8 @@ export async function processAgentMessage(
         await editMessageText(token, chatId, statusMessageId, `🔄 *${agent.name}* is waking up...`);
     }
 
+    const history = loadHistory(userId);
+
     const meetings = await getActiveMeetings(agent.id);
     const meetingContext = meetings.length > 0 
         ? meetings.map(m => `Meeting with Agent ${m.initiator_id === agent.id ? m.participant_id : m.initiator_id}: ${m.topic}\n${m.transcript || 'No transcript yet'}`).join('\n\n')
@@ -373,7 +378,7 @@ export async function processAgentMessage(
             agentRole: agent.role,
             dockerImage: agent.docker_image,
             userMessage: text,
-            history: [],
+            history: history.slice(-10),
             maxTokens: 1000,
             requireApproval: agent.require_approval === 1,
             userId: userId,
@@ -399,11 +404,15 @@ export async function processAgentMessage(
             result.output = `❌ *API Key Error (401 Unauthorized)*\n\nYour API key is either missing or invalid for this provider.\n\n*How to fix:*\n1. Open Dashboard -> Settings\n2. Enter a valid API key\n3. Click "Save All Settings"\n4. Send \`/reset\` here to delete this broken cubicle and apply your new keys!`;
         }
 
+        history.push({ role: 'user', content: text });
+        history.push({ role: 'assistant', content: result.output });
+        saveHistory(userId, history);
+
         result.output = await detectAndSendFiles(token, chatId, result.output, agent.id, userId);
         
         const previewInfo = detectWebServer(result.output, agent.id);
         if (previewInfo) {
-            await sendPreviewButton(token, chatId, previewInfo.url, previewInfo.port);
+            await sendPreviewButton(token, chatId, previewInfo.url, previewInfo.port, agent.id);
         }
 
         if (result.output.includes('[MEETING]') && result.output.includes('TARGET_ROLE:')) {
@@ -963,11 +972,14 @@ function detectWebServer(output: string, agentId: number): { url: string; port: 
     return null;
 }
 
-async function sendPreviewButton(token: string, chatId: number, previewPath: string, port: number): Promise<void> {
+async function sendPreviewButton(token: string, chatId: number, previewPath: string, port: number, agentId: number): Promise<void> {
     const settings = await import('./db').then(m => m.getAllSettings());
     const publicUrl = settings.public_url;
     
     if (!publicUrl) return;
+
+    const password = crypto.randomBytes(3).toString('hex');
+    setPreviewPassword(agentId, port, password);
     
     const fullUrl = `${publicUrl}${previewPath}`;
     const keyboard = {
@@ -982,7 +994,7 @@ async function sendPreviewButton(token: string, chatId: number, previewPath: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             chat_id: chatId,
-            text: `🌐 *Web server detected!*`,
+            text: `🌐 *Web App Published!* (Port ${port})\n\n🔒 *Security Password:* \`${password}\`\n\nClick the link below and enter your password to access the app.`,
             parse_mode: 'Markdown',
             reply_markup: keyboard
         })

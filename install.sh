@@ -86,6 +86,7 @@ FROM hermit-crab:latest AS crab-source
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl jq sed gawk bash coreutils iputils-ping dnsutils ca-certificates \
+    nodejs npm sqlite3 ffmpeg python3 python3-pip python3-venv \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=crab-source /usr/local/bin/crab /usr/local/bin/crab
 WORKDIR /workspace

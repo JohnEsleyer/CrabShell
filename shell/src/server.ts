@@ -18,6 +18,11 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'crabshell-secret-change-in
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'crabshell-webhook-secret';
 
 const pendingVerifications = new Map<string, { code: string; timestamp: number }>();
+const previewPasswords = new Map<string, string>();
+
+export function setPreviewPassword(agentId: number, port: number, pass: string) {
+    previewPasswords.set(`${agentId}_${port}`, pass);
+}
 
 export async function startServer() {
     await initDb();
@@ -40,6 +45,7 @@ export async function startServer() {
     fastify.addHook('preHandler', async (request: any, reply: any) => {
         if (request.url.startsWith('/webhook/')) return;
         if (request.url.startsWith('/api/terminal')) return;
+        if (request.url.startsWith('/preview')) return;
         
         if (publicRoutes.includes(request.url)) return;
 
@@ -621,10 +627,59 @@ export async function startServer() {
         }
     });
 
+    fastify.post('/preview-login', async (request: any, reply: any) => {
+        const { agentId, port, password } = request.body || {};
+        const key = `${agentId}_${port}`;
+
+        if (previewPasswords.get(key) === password) {
+            reply.setCookie(`preview_auth_${agentId}_${port}`, password, {
+                path: '/',
+                maxAge: 60 * 60 * 24,
+                httpOnly: true,
+                sameSite: 'strict'
+            });
+            return { success: true };
+        }
+
+        return reply.code(401).send({ error: 'Invalid password' });
+    });
+
     fastify.get('/preview/:agentId/:port/*', async (request: any, reply: any) => {
         const { agentId, port } = request.params;
         const targetPath = request.params['*'] || '';
         const targetPort = parseInt(port, 10);
+
+        const authKey = `${agentId}_${targetPort}`;
+        const expectedPassword = previewPasswords.get(authKey);
+        if (expectedPassword) {
+            const cookieName = `preview_auth_${agentId}_${targetPort}`;
+            if (request.cookies[cookieName] !== expectedPassword) {
+                return reply.type('text/html').send(`<!DOCTYPE html>
+<html>
+<head><title>Secure Web App</title></head>
+<body style="background:#0f172a;color:white;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;">
+  <form onsubmit="login(event)" style="background:#1e293b;padding:2rem;border-radius:8px;width:320px;text-align:center;border:1px solid #ff6b3540;">
+    <h2 style="margin-top:0;">🔒 App Locked</h2>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:20px;">Enter the password shared in Telegram.</p>
+    <input type="password" id="pwd" placeholder="Password" style="width:100%;padding:10px;margin-bottom:15px;border-radius:4px;border:1px solid #334155;background:#0f172a;color:white;box-sizing:border-box;" required />
+    <button type="submit" style="width:100%;padding:10px;background:#ff6b35;color:white;border:none;border-radius:4px;font-weight:bold;cursor:pointer;">Unlock Web App</button>
+  </form>
+  <script>
+  async function login(e) {
+      e.preventDefault();
+      const res = await fetch('/preview-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agentId: '${agentId}', port: ${targetPort}, password: document.getElementById('pwd').value })
+      });
+      if (res.ok) window.location.reload();
+      else alert('Invalid password');
+  }
+  </script>
+</body>
+</html>`);
+            }
+        }
         
         if (isNaN(targetPort) || targetPort < 1 || targetPort > 65535) {
             return reply.code(400).send({ error: 'Invalid port' });
@@ -676,6 +731,15 @@ export async function startServer() {
     fastify.all('/preview/:agentId/:port', async (request: any, reply: any) => {
         const { agentId, port } = request.params;
         const targetPort = parseInt(port, 10);
+
+        const authKey = `${agentId}_${targetPort}`;
+        const expectedPassword = previewPasswords.get(authKey);
+        if (expectedPassword) {
+            const cookieName = `preview_auth_${agentId}_${targetPort}`;
+            if (request.cookies[cookieName] !== expectedPassword) {
+                return reply.redirect(`/preview/${agentId}/${targetPort}/`);
+            }
+        }
         
         if (isNaN(targetPort) || targetPort < 1 || targetPort > 65535) {
             return reply.code(400).send({ error: 'Invalid port' });
