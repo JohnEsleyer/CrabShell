@@ -433,10 +433,10 @@ export async function createAdmin(username: string, passwordHash: string, salt: 
     });
 }
 
-export async function getAdmin(username: string): Promise<{id: number, password_hash: string, salt: string} | undefined> {
+export async function getAdmin(username: string): Promise<{id: number, username: string, password_hash: string, salt: string} | undefined> {
     const db = await getClient();
     const rs = await db.execute({
-        sql: "SELECT id, password_hash, salt FROM admins WHERE username = ?",
+        sql: "SELECT id, username, password_hash, salt FROM admins WHERE username = ?",
         args: [username]
     });
     
@@ -444,11 +444,36 @@ export async function getAdmin(username: string): Promise<{id: number, password_
         const row = rs.rows[0];
         return {
             id: row.id as number,
+            username: row.username as string,
             password_hash: row.password_hash as string,
             salt: row.salt as string
         };
     }
     return undefined;
+}
+
+export async function getFirstAdmin(): Promise<{id: number, username: string, password_hash: string, salt: string} | undefined> {
+    const db = await getClient();
+    const rs = await db.execute("SELECT id, username, password_hash, salt FROM admins LIMIT 1");
+    
+    if (rs.rows.length > 0) {
+        const row = rs.rows[0];
+        return {
+            id: row.id as number,
+            username: row.username as string,
+            password_hash: row.password_hash as string,
+            salt: row.salt as string
+        };
+    }
+    return undefined;
+}
+
+export async function updateAdmin(id: number, username: string, passwordHash: string, salt: string): Promise<void> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'UPDATE admins SET username = ?, password_hash = ?, salt = ? WHERE id = ?',
+        args: [username, passwordHash, salt, id]
+    });
 }
 
 export async function createAuditLog(

@@ -20,19 +20,20 @@ export async function startTunnel(port: number): Promise<string | null> {
         return currentUrl;
     }
 
-    const existingUrl = await getSetting('public_url');
-    if (existingUrl && existingUrl.includes('trycloudflare.com')) {
-        const recent = await getSetting('tunnel_started_at');
-        if (recent) {
-            const startedAt = new Date(recent).getTime();
-            const hoursSinceStart = (Date.now() - startedAt) / (1000 * 60 * 60);
-            if (hoursSinceStart < 12) {
-                console.log('[Tunnel] Using existing tunnel URL from DB');
-                currentUrl = existingUrl;
-                return existingUrl;
-            }
-        }
-    }
+    // Force fresh tunnel every time (bypass cache)
+    // const existingUrl = await getSetting('public_url');
+    // if (existingUrl && existingUrl.includes('trycloudflare.com')) {
+    //     const recent = await getSetting('tunnel_started_at');
+    //     if (recent) {
+    //         const startedAt = new Date(recent).getTime();
+    //         const hoursSinceStart = (Date.now() - startedAt) / (1000 * 60 * 60);
+    //         if (hoursSinceStart < 12) {
+    //             console.log('[Tunnel] Using existing tunnel URL from DB');
+    //             currentUrl = existingUrl;
+    //             return existingUrl;
+    //         }
+    //     }
+    // }
 
     return new Promise((resolve) => {
         console.log('[Tunnel] Starting Cloudflare Quick Tunnel...');

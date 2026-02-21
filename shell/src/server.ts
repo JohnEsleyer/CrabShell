@@ -1,6 +1,6 @@
 import { handleTelegramUpdate, sendTelegramMessage, smartReply, processAgentMessage, sendVerificationCode, setBotCommands, registerWebhook } from './telegram';
 import { 
-    getAllAgents, isAllowed, initDb, getAdminCount, createAdmin, getAdmin,
+    getAllAgents, isAllowed, initDb, getAdminCount, createAdmin, getAdmin, getFirstAdmin, updateAdmin,
     getAllSettings, setSetting, getBudget, getAllowlist, addToAllowlist, removeFromAllowlist,
     getTotalSpend, getAllBudgets, updateAgent, deleteAgent, updateBudget, createAgent,
     getAuditLogs, getAgentById, getAgentByToken, getSetting, setOperator, getOperator
@@ -35,8 +35,8 @@ export async function startServer() {
 
     const publicRoutes = [
         '/api/auth/status',
-        '/api/auth/setup',
         '/api/auth/login',
+        '/api/auth/change',
         '/health',
         '/dashboard',
         '/dashboard/'
@@ -63,33 +63,24 @@ export async function startServer() {
     fastify.get('/api/auth/status', async (request: any, reply: any) => {
         const adminCount = await getAdminCount();
         if (adminCount === 0) {
-            return { status: 'setup_required' };
+            const { hash, salt } = hashPassword('crab123');
+            await createAdmin('admin', hash, salt);
+            console.log('🔒 Initialized default admin credentials: admin / crab123');
+        }
+        
+        const admin = await getFirstAdmin();
+        let usingDefault = false;
+        if (admin) {
+            usingDefault = admin.username === 'admin' && verifyPassword('crab123', admin.password_hash, admin.salt);
         }
         
         const operator = await getOperator();
         const token = request.cookies.crabshell_session;
         if (token) {
-            return { status: 'authenticated', hasOperator: !!operator };
+            return { status: 'authenticated', hasOperator: !!operator, usingDefault };
         }
         
-        return { status: 'login_required', hasOperator: !!operator };
-    });
-
-    fastify.post('/api/auth/setup', async (request: any, reply: any) => {
-        const count = await getAdminCount();
-        if (count > 0) return reply.code(403).send({ error: 'Setup already completed' });
-
-        const { username, password, operator_telegram_id } = request.body;
-        if (!username || !password) return reply.code(400).send({ error: 'Missing credentials' });
-
-        const { hash, salt } = hashPassword(password);
-        await createAdmin(username, hash, salt);
-
-        if (operator_telegram_id) {
-            await addToAllowlist(Number(operator_telegram_id), 'operator', 'Operator', true);
-        }
-
-        return { message: 'Admin created. Please login.' };
+        return { status: 'login_required', hasOperator: !!operator, usingDefault };
     });
 
     fastify.post('/api/auth/login', async (request: any, reply: any) => {
@@ -106,7 +97,7 @@ export async function startServer() {
             path: '/',
             httpOnly: true,
             secure: false,
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7
         });
 
@@ -116,6 +107,20 @@ export async function startServer() {
     fastify.post('/api/auth/logout', async (request: any, reply: any) => {
         reply.clearCookie('crabshell_session');
         return { success: true };
+    });
+
+    fastify.post('/api/auth/change', async (request: any, reply: any) => {
+        const { username, password } = request.body;
+        if (!username || !password) return reply.code(400).send({ error: 'Username and password are required' });
+        
+        const admin = await getFirstAdmin();
+        if (admin) {
+            const { hash, salt } = hashPassword(password);
+            await updateAdmin(admin.id, username, hash, salt);
+            reply.clearCookie('crabshell_session');
+            return { success: true };
+        }
+        return reply.code(400).send({ error: 'Admin record not found' });
     });
 
     fastify.get('/health', async () => {

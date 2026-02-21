@@ -113,52 +113,53 @@
         
         <div class="glass-card p-8 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
             <div class="mb-8 text-center">
-                <div class="relative w-24 h-24 mx-auto mb-4">
-                    <svg id="auth-mascot" viewBox="0 0 200 200" class="w-full h-full crab-float">
-                        <path d="M100 40C60 40 30 70 30 110C30 130 45 150 70 155C80 158 120 158 130 155C155 150 170 130 170 110C170 70 140 40 100 40Z" fill="#334155" />
-                        <path d="M100 55C80 55 60 65 55 85C50 105 60 125 80 135" stroke="#475569" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <g id="crab-body-auth">
-                            <path d="M50 130L30 150" stroke="#ff6b35" stroke-width="8" stroke-linecap="round" />
-                            <path d="M150 130L170 150" stroke="#ff6b35" stroke-width="8" stroke-linecap="round" />
-                            <path d="M60 145L45 165" stroke="#ff6b35" stroke-width="8" stroke-linecap="round" />
-                            <path d="M140 145L155 165" stroke="#ff6b35" stroke-width="8" stroke-linecap="round" />
-                            <rect x="70" y="115" width="60" height="40" rx="20" fill="#ff6b35" />
-                            <circle cx="85" cy="115" r="12" fill="#ff6b35" />
-                            <circle cx="115" cy="115" r="12" fill="#ff6b35" />
-                            <circle cx="85" cy="115" r="5" fill="black" />
-                            <circle cx="115" cy="115" r="5" fill="black" />
-                            <g id="left-claw-auth" class="claw-pinch">
-                                <path d="M60 115Q40 115 35 100" stroke="#ff6b35" stroke-width="12" stroke-linecap="round" fill="none"/>
-                                <path d="M35 105Q25 90 40 85" stroke="#ff6b35" stroke-width="10" stroke-linecap="round" fill="none"/>
-                            </g>
-                            <g id="right-claw-auth" class="claw-pinch">
-                                <path d="M140 115Q160 115 165 100" stroke="#ff6b35" stroke-width="12" stroke-linecap="round" fill="none"/>
-                                <path d="M165 105Q175 90 160 85" stroke="#ff6b35" stroke-width="10" stroke-linecap="round" fill="none"/>
-                            </g>
-                        </g>
+                <div class="relative w-32 h-32 mx-auto mb-6">
+                    <svg id="auth-mascot" viewBox="0 0 200 200" class="w-full h-full drop-shadow-[0_0_20px_rgba(255,107,53,0.5)] crab-float">
+                        <defs>
+                            <linearGradient id="shellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#1e293b"/>
+                                <stop offset="100%" style="stop-color:#0f172a"/>
+                            </linearGradient>
+                            <linearGradient id="crabGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff6b35"/>
+                                <stop offset="100%" style="stop-color:#ea580c"/>
+                            </linearGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <polygon points="100,10 180,50 180,150 100,190 20,150 20,50" fill="url(#shellGrad)" stroke="#ff6b35" stroke-width="4"/>
+                        <polygon points="100,35 155,65 155,135 100,165 45,135 45,65" fill="#1e293b" stroke="#f97316" stroke-width="2"/>
+                        <path d="M100 35 L100 165 M45 65 L155 135 M45 135 L155 65" stroke="#ea580c" stroke-width="1" opacity="0.5"/>
+                        <path d="M100 100 C 70 80, 50 100, 60 130 C 70 120, 80 125, 85 110" fill="none" stroke="url(#crabGrad)" stroke-width="6" stroke-linecap="round"/>
+                        <path d="M100 100 C 130 80, 150 100, 140 130 C 130 120, 120 125, 115 110" fill="none" stroke="url(#crabGrad)" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="100" cy="100" r="14" fill="url(#crabGrad)" filter="url(#glow)"/>
+                        <circle cx="100" cy="100" r="5" fill="#fff"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold tracking-tight text-white mb-2">CrabShell</h1>
-                <p id="auth-title" class="text-orange-500 font-mono text-sm">SYSTEM_LOCKED</p>
+                <h1 class="text-3xl font-bold tracking-tight text-white mb-2 gradient-text">CrabShell</h1>
+                <p id="auth-title" class="text-orange-500 font-mono text-sm">SECURE_SHELL_ACCESS</p>
             </div>
 
             <form id="auth-form" class="space-y-4" onsubmit="handleAuth(event)">
-                <div id="setup-notice" class="hidden bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-xs text-blue-300 mb-2">
-                    <strong>First Time Setup</strong><br>
-                    Create your admin credentials to get started.
+                <div id="default-login-hint" class="hidden bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 text-xs text-orange-300 mb-2">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        <strong>Default Credentials Active</strong>
+                    </div>
+                    Please login with the default credentials below, then change your password in Settings for security.
                 </div>
                 <div>
-                    <label class="block text-xs font-mono text-slate-400 mb-1">ADMIN USERNAME</label>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">USERNAME</label>
                     <input type="text" id="username" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 focus:border-orange-500 outline-none transition-colors text-white" required autocomplete="off" placeholder="admin">
                 </div>
                 <div>
-                    <label class="block text-xs font-mono text-slate-400 mb-1">ADMIN PASSWORD</label>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">PASSWORD</label>
                     <input type="password" id="password" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 focus:border-orange-500 outline-none transition-colors text-white" required placeholder="••••••••">
-                </div>
-                <div id="operator-field" class="hidden">
-                    <label class="block text-xs font-mono text-slate-400 mb-1">TELEGRAM USER ID (optional)</label>
-                    <input type="text" id="operator-id" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 focus:border-orange-500 outline-none transition-colors text-white" placeholder="e.g., 123456789">
-                    <p class="text-xs text-slate-500 mt-1">Send /start to <a href="https://t.me/userinfobot" target="_blank" class="text-orange-400 hover:underline">@userinfobot</a> to get your ID</p>
                 </div>
                 
                 <div id="auth-error" class="text-red-400 text-xs font-mono hidden text-center"></div>
@@ -166,6 +167,15 @@
                 <button type="submit" id="auth-btn" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-bold transition-all shadow-lg shadow-orange-900/20">
                     Authenticate
                 </button>
+                
+                <div id="default-creds-display" class="hidden text-center mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <p class="text-xs text-slate-400 mb-2">Default credentials:</p>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="font-mono text-orange-400 bg-slate-900 px-2 py-1 rounded text-sm">admin</span>
+                        <span class="text-slate-500">/</span>
+                        <span class="font-mono text-orange-400 bg-slate-900 px-2 py-1 rounded text-sm">crab123</span>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -217,6 +227,17 @@
         </aside>
 
         <main class="flex-1 flex flex-col relative z-10 overflow-hidden">
+            <!-- Security Warning Banner -->
+            <div id="default-creds-warning" class="hidden bg-red-900/40 border-b border-red-500/50 text-red-200 px-8 py-3 flex justify-between items-center text-sm shadow-md">
+                <div class="flex items-center gap-3">
+                    <div class="p-1.5 bg-red-500/20 rounded-lg"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i></div>
+                    <span><strong>SECURITY WARNING:</strong> You are using default admin credentials. Please change your password in Settings.</span>
+                </div>
+                <button onclick="showSection('settings')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-lg shadow-red-500/20 flex items-center gap-2">
+                    Change Password <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                </button>
+            </div>
+
             <header class="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-slate-900/50 backdrop-blur-sm">
                 <div>
                     <h2 class="text-2xl font-bold text-white" id="page-title">Mission Control</h2>
@@ -445,6 +466,33 @@
                         <i data-lucide="settings" class="w-5 h-5 text-orange-500"></i>
                         Settings
                     </h3>
+
+                    <!-- Admin Credentials Settings -->
+                    <div class="glass-card p-6 rounded-2xl mb-6" id="admin-creds-card">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-red-500/10 rounded-lg text-red-500"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
+                            <h4 class="text-lg font-bold text-white">Admin Credentials</h4>
+                        </div>
+                        <div id="settings-creds-warning" class="hidden bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
+                            <p class="text-sm text-red-300 flex items-center gap-2">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                <strong>Action Required:</strong> You are using default credentials. Please change your username and password immediately.
+                            </p>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-mono text-slate-400 mb-2">NEW USERNAME</label>
+                                <input type="text" id="setting-admin-username" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors" placeholder="Enter new username">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-slate-400 mb-2">NEW PASSWORD</label>
+                                <input type="password" id="setting-admin-password" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors" placeholder="Enter new password">
+                            </div>
+                            <button onclick="changeAdminCredentials()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-all text-sm flex items-center gap-2 shadow-lg shadow-red-900/20">
+                                <i data-lucide="save" class="w-4 h-4"></i> Update Credentials
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Operator Settings -->
                     <div class="glass-card p-6 rounded-2xl mb-6">
@@ -1029,6 +1077,7 @@ cloudflared tunnel url crabshell
         let ws = null;
         let wizardStep = 1;
         let pendingVerificationToken = null;
+        window.usingDefaultCreds = false;
 
         function openWebhookGuide() {
             document.getElementById('webhook-guide-modal').classList.remove('hidden');
@@ -1054,12 +1103,10 @@ cloudflared tunnel url crabshell
                 const data = await res.json();
                 
                 if (data.status === 'authenticated') {
+                    window.usingDefaultCreds = data.usingDefault;
                     showDashboard();
-                } else if (data.status === 'setup_required') {
-                    showAuthScreen('INITIALIZE SYSTEM', 'Create Admin Account', true);
-                    authState = 'setup_required';
                 } else {
-                    showAuthScreen('SYSTEM LOCKED', 'Authenticate', false);
+                    showAuthScreen('SYSTEM LOCKED', 'Authenticate', data.usingDefault);
                     authState = 'login_required';
                 }
             } catch (e) {
@@ -1068,24 +1115,37 @@ cloudflared tunnel url crabshell
             }
         }
 
-        function showAuthScreen(title, btnText, isSetup = false) {
+        function showAuthScreen(title, btnText, usingDefault = false) {
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('dashboard-ui').classList.add('hidden');
             document.getElementById('auth-title').innerText = title;
             document.getElementById('auth-btn').innerText = btnText;
             
-            if (isSetup) {
-                document.getElementById('setup-notice').classList.remove('hidden');
-                document.getElementById('operator-field').classList.remove('hidden');
+            if (usingDefault) {
+                document.getElementById('default-login-hint').classList.remove('hidden');
+                document.getElementById('default-creds-display').classList.remove('hidden');
             } else {
-                document.getElementById('setup-notice').classList.add('hidden');
-                document.getElementById('operator-field').classList.add('hidden');
+                document.getElementById('default-login-hint').classList.add('hidden');
+                document.getElementById('default-creds-display').classList.add('hidden');
             }
         }
 
         function showDashboard() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('dashboard-ui').classList.remove('hidden');
+            
+            if (window.usingDefaultCreds) {
+                document.getElementById('default-creds-warning').classList.remove('hidden');
+                document.getElementById('settings-creds-warning').classList.remove('hidden');
+                document.getElementById('admin-creds-card').classList.add('border-red-500/50');
+                document.getElementById('admin-creds-card').classList.remove('border-slate-700/50');
+            } else {
+                document.getElementById('default-creds-warning').classList.add('hidden');
+                document.getElementById('settings-creds-warning').classList.add('hidden');
+                document.getElementById('admin-creds-card').classList.remove('border-red-500/50');
+                document.getElementById('admin-creds-card').classList.add('border-slate-700/50');
+            }
+            
             loadStats();
             loadAgents();
             loadAuditLogs();
@@ -1300,41 +1360,71 @@ cloudflared tunnel url crabshell
             }
         }
 
+        async function changeAdminCredentials() {
+            const username = document.getElementById('setting-admin-username').value;
+            const password = document.getElementById('setting-admin-password').value;
+            
+            if (!username || !password) {
+                return alert('Both username and password are required');
+            }
+            
+            if (username === 'admin' && password === 'crab123') {
+                return alert('Please enter a secure password different from the default.');
+            }
+            
+            try {
+                const res = await fetch('/api/auth/change', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (res.ok) {
+                    alert('Credentials updated successfully! Please log in again.');
+                    window.location.reload();
+                } else {
+                    const data = await res.json();
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) {
+                alert('Network error: ' + e.message);
+            }
+        }
+
         async function handleAuth(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('auth-error');
+            const btn = document.getElementById('auth-btn');
+            
             errorDiv.classList.add('hidden');
-
-            const endpoint = authState === 'setup_required' ? '/api/auth/setup' : '/api/auth/login';
+            btn.disabled = true;
+            btn.innerText = 'Authenticating...';
 
             try {
-                let body: any = { username, password };
-                if (authState === 'setup_required') {
-                    const operatorId = document.getElementById('operator-id').value;
-                    if (operatorId) body.operator_telegram_id = operatorId;
-                }
-
-                const res = await fetch(endpoint, {
+                console.log('Attempting login for:', username);
+                const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({ username, password })
                 });
                 
                 const data = await res.json();
+                console.log('Login response:', res.status, data);
 
-                if (!res.ok) throw new Error(data.error || 'Operation failed');
-
-                if (authState === 'setup_required') {
-                    alert('System Initialized. Please login.');
-                    window.location.reload();
-                } else {
-                    showDashboard();
+                if (!res.ok) {
+                    throw new Error(data.error || `Login failed (${res.status})`);
                 }
+                
+                alert('Login successful! Redirecting...');
+                window.location.reload();
             } catch (err) {
-                errorDiv.innerText = `ERROR: ${err.message}`;
+                console.error('Login error:', err);
+                errorDiv.innerText = err.message;
                 errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerText = 'Authenticate';
             }
         }
 
@@ -2153,7 +2243,7 @@ cloudflared tunnel url crabshell
                 const data = await res.json();
                 const cleanLogs = data.logs.replace(/\n/g, '\r\n').replace(/\x1b\[[0-9;]*m/g, '');
                 term.write(cleanLogs);
-            } catch (e: any) {
+            } catch (e) {
                 term.writeln(`\x1b[31mError: ${e.message}\x1b[0m`);
             }
         }
