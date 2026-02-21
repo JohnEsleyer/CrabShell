@@ -3,7 +3,8 @@ import {
     getAllAgents, isAllowed, initDb, getAdminCount, createAdmin, getAdmin, getFirstAdmin, updateAdmin,
     getAllSettings, setSetting, getBudget, getAllowlist, addToAllowlist, removeFromAllowlist,
     getTotalSpend, getAllBudgets, updateAgent, deleteAgent, updateBudget, createAgent,
-    getAuditLogs, getAgentById, getAgentByToken, getSetting, setOperator, getOperator
+    getAuditLogs, getAgentById, getAgentByToken, getSetting, setOperator, getOperator,
+    createAgentRuntimeLog, getAgentRuntimeLogs
 } from './db';
 import { checkDocker, listContainers, getContainerExec, docker, spawnAgent } from './docker';
 import { hashPassword, verifyPassword, generateSessionToken } from './auth';
@@ -11,6 +12,7 @@ import { startTunnel, syncWebhooks, getTunnelUrl } from './tunnel';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
+import { execFileSync } from 'child_process';
 import cookie from '@fastify/cookie';
 
 const PORT = process.env.PORT || 3000;
@@ -152,6 +154,12 @@ export async function startServer() {
         const allowlist = await getAllowlist();
         const operator = await getOperator();
         
+        const auditLogs = await getAuditLogs(undefined, 500);
+        const runtimeLogs = await getAgentRuntimeLogs(undefined, 500);
+        const errors24h = runtimeLogs.filter(l => l.level === 'error').length;
+        const approvedCount = auditLogs.filter(l => l.status === 'approved').length;
+        const pendingCount = auditLogs.filter(l => l.status === 'pending').length;
+
         return {
             dockerStatus: dockerOk ? 'online' : 'offline',
             activeContainers: containers.length,
@@ -159,6 +167,12 @@ export async function startServer() {
             activeAgents: agents.filter(a => a.is_active).length,
             totalSpendToday: totalSpend,
             allowlistCount: allowlist.length,
+            metrics: {
+                auditApprovals: approvedCount,
+                auditPending: pendingCount,
+                runtimeErrors: errors24h,
+                runtimeLogCount: runtimeLogs.length
+            },
             operator: operator,
             agents: agents.map(a => ({
                 ...a,
@@ -225,6 +239,12 @@ export async function startServer() {
         const agentId = request.query.agentId ? Number(request.query.agentId) : undefined;
         const limit = request.query.limit ? Number(request.query.limit) : 50;
         return await getAuditLogs(agentId, limit);
+    });
+
+    fastify.get('/api/runtime-logs', async (request: any) => {
+        const agentId = request.query.agentId ? Number(request.query.agentId) : undefined;
+        const limit = request.query.limit ? Number(request.query.limit) : 100;
+        return await getAgentRuntimeLogs(agentId, limit);
     });
 
     fastify.post('/api/telegram/webhook', async (request: any, reply: any) => {
@@ -330,7 +350,9 @@ export async function startServer() {
                 system_prompt: agentData.system_prompt || '',
                 docker_image: agentData.docker_image || 'hermit/base:latest',
                 is_active: agentData.is_active !== undefined ? agentData.is_active : 1,
-                require_approval: agentData.require_approval || 0
+                require_approval: agentData.require_approval || 0,
+                profile_picture_url: agentData.profile_picture_url || '',
+                profile_bio: agentData.profile_bio || ''
             });
             
             const settings = await getAllSettings();
@@ -346,7 +368,7 @@ export async function startServer() {
     });
 
     fastify.post('/api/agents', async (request: any) => {
-        const { name, role, telegram_token, docker_image, system_prompt, is_active, require_approval } = request.body;
+        const { name, role, telegram_token, docker_image, system_prompt, is_active, require_approval, profile_picture_url, profile_bio } = request.body;
         const id = await createAgent({
             name,
             role: role || '',
@@ -354,14 +376,16 @@ export async function startServer() {
             system_prompt: system_prompt || '',
             docker_image: docker_image || 'hermit/base:latest',
             is_active: is_active !== undefined ? is_active : 1,
-            require_approval: require_approval || 0
+            require_approval: require_approval || 0,
+            profile_picture_url: profile_picture_url || '',
+            profile_bio: profile_bio || ''
         });
         return { id, success: true };
     });
 
     fastify.put('/api/agents/:id', async (request: any) => {
         const id = Number(request.params.id);
-        const { name, role, telegram_token, docker_image, system_prompt, is_active, daily_limit_usd, require_approval } = request.body;
+        const { name, role, telegram_token, docker_image, system_prompt, is_active, daily_limit_usd, require_approval, profile_picture_url, profile_bio } = request.body;
         
         await updateAgent(id, { 
             name, 
@@ -370,7 +394,9 @@ export async function startServer() {
             docker_image, 
             system_prompt, 
             is_active,
-            require_approval 
+            require_approval,
+            profile_picture_url,
+            profile_bio
         });
         
         if (daily_limit_usd !== undefined) {
@@ -416,6 +442,38 @@ export async function startServer() {
         }
     });
 
+    fastify.post('/api/chat/:agentId', async (request: any, reply: any) => {
+        const agentId = Number(request.params.agentId);
+        const { message, userId } = request.body || {};
+        if (!message) return reply.code(400).send({ error: 'message is required' });
+
+        const agent = await getAgentById(agentId);
+        if (!agent) return reply.code(404).send({ error: 'Agent not found' });
+
+        try {
+            const result = await spawnAgent({
+                agentId: agent.id,
+                agentName: agent.name,
+                agentRole: agent.role,
+                dockerImage: agent.docker_image,
+                userMessage: message,
+                history: [],
+                maxTokens: 1000,
+                requireApproval: agent.require_approval === 1,
+                userId: Number(userId || 0)
+            });
+
+            const estimatedCost = result.output.length * 0.00001;
+            await import('./db').then(m => m.updateSpend(agent.id, estimatedCost));
+            await createAgentRuntimeLog(agent.id, 'info', 'dashboard-chat', 'Chat message processed', { userId: Number(userId || 0) });
+
+            return { output: result.output, containerId: result.containerId };
+        } catch (e: any) {
+            await createAgentRuntimeLog(agent.id, 'error', 'dashboard-chat', e.message || 'Chat failed', { userId: Number(userId || 0) });
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
     fastify.get('/webhook/:token', async (_request: any, _reply: any) => {
         return { message: 'Use POST /webhook/:token for Telegram updates' };
     });
@@ -455,12 +513,20 @@ export async function startServer() {
                         const statusMsg = await sendTelegramMessage(token, chatId, `🔄 *${agentName}* is waking up...`);
                         
                         const result = await processAgentMessage(token, chatId, userId, text, statusMsg);
+                        const tokenAgent = await getAgentByToken(token);
+                        if (tokenAgent) {
+                            await createAgentRuntimeLog(tokenAgent.id, 'info', 'telegram', 'Telegram message processed', { userId, textPreview: text.slice(0, 120) });
+                        }
                         
                         await smartReply(token, chatId, result.output, statusMsg);
                     }
                 }
             } catch (error) {
                 console.error('Error processing webhook in background:', error);
+                const tokenAgent = await getAgentByToken(token);
+                if (tokenAgent) {
+                    await createAgentRuntimeLog(tokenAgent.id, 'error', 'telegram', String(error), { updateType: Object.keys(update || {}) });
+                }
             }
         });
     });
@@ -626,6 +692,33 @@ export async function startServer() {
         }
         
         return reply.sendFile(filePath, workspacePath);
+    });
+
+    fastify.get('/api/files/:agentId/:userId/download-all', async (request: any, reply: any) => {
+        const { agentId, userId } = request.params;
+        const workspacePath = path.join(WORKSPACE_DIR, `${agentId}_${userId}`);
+        if (!fs.existsSync(workspacePath)) {
+            return reply.code(404).send({ error: 'Workspace not found' });
+        }
+
+        const outName = `workspace_${agentId}_${userId}.tar.gz`;
+        const tmpArchive = path.join(WORKSPACE_DIR, outName);
+        execFileSync('tar', ['-czf', tmpArchive, '-C', workspacePath, '.']);
+        reply.header('Content-Disposition', `attachment; filename="${outName}"`);
+        return reply.send(fs.createReadStream(tmpArchive));
+    });
+
+    fastify.post('/api/files/:agentId/:userId/upload', async (request: any, reply: any) => {
+        const { agentId, userId } = request.params;
+        const { fileName, contentBase64 } = request.body || {};
+        if (!fileName || !contentBase64) return reply.code(400).send({ error: 'fileName and contentBase64 required' });
+
+        const workspacePath = path.join(WORKSPACE_DIR, `${agentId}_${userId}`);
+        if (!fs.existsSync(workspacePath)) fs.mkdirSync(workspacePath, { recursive: true });
+        const safeName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+        const fullPath = path.join(workspacePath, safeName);
+        fs.writeFileSync(fullPath, Buffer.from(contentBase64, 'base64'));
+        return { success: true, path: safeName };
     });
 
     fastify.get('/api/agents/:id/runtime-logs/:userId', async (request: any, reply: any) => {

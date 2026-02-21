@@ -101,6 +101,9 @@
         .xterm-viewport::-webkit-scrollbar { width: 8px; }
         .xterm-viewport::-webkit-scrollbar-track { background: #0c0a09; }
         .xterm-viewport::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        .agent-avatar { width: 42px; height: 42px; border-radius: 9999px; object-fit: cover; border: 2px solid rgba(251,146,60,.6); background:#1e293b; }
+        .agent-avatar-mini { width: 20px; height: 20px; border-radius: 9999px; object-fit: cover; border: 1px solid rgba(251,146,60,.7); background:#1e293b; }
     </style>
 </head>
 <body class="h-screen flex text-slate-200">
@@ -290,6 +293,23 @@
                         </div>
                     </div>
 
+                    <div class="glass-card p-5 rounded-2xl mb-6">
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <h4 class="text-white font-bold">In-App Agent Chat</h4>
+                            <span class="text-xs text-slate-400">Debug Telegram response issues directly from dashboard</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <select id="chat-agent" class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
+                            <input id="chat-user-id" type="number" class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white" placeholder="User ID (optional)">
+                            <input id="chat-message" class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-lg p-3 text-white" placeholder="Ask the selected agent..."></input>
+                        </div>
+                        <div class="mt-3 flex gap-3">
+                            <button onclick="sendDashboardChat()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm">Send</button>
+                            <button onclick="loadRuntimeLogs()" class="bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg text-sm">Refresh Agent Logs</button>
+                        </div>
+                        <div id="chat-output" class="mt-3 text-sm text-slate-300 whitespace-pre-wrap bg-slate-900/60 border border-slate-700 rounded-lg p-3 min-h-[72px]">No messages yet.</div>
+                    </div>
+
                     <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                         <i data-lucide="grid" class="w-5 h-5 text-orange-500"></i>
                         Deployed Agents
@@ -359,10 +379,12 @@
                         Files & Workspace Browser
                     </h3>
                     <div class="glass-card p-5 rounded-2xl mb-5">
-                        <div class="grid md:grid-cols-3 gap-3">
+                        <div class="grid md:grid-cols-5 gap-3">
                             <select id="files-agent" class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
                             <select id="files-user" class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
                             <button onclick="loadWorkspaceFiles()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold">Load Workspace</button>
+                            <button onclick="downloadWorkspaceArchive()" class="bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg">Download .tar.gz</button>
+                            <input type="file" id="workspace-upload" class="text-xs text-slate-300 bg-slate-900/50 border border-slate-700 rounded-lg p-2" onchange="uploadWorkspaceFile(event)">
                         </div>
                         <p class="text-xs text-slate-400 mt-3">This makes it easier to review what an agent created before forwarding outputs in Telegram.</p>
                     </div>
@@ -386,6 +408,7 @@
                                     <th class="px-4 py-3 text-left font-mono">AGENT</th>
                                     <th class="px-4 py-3 text-left font-mono">COMMAND</th>
                                     <th class="px-4 py-3 text-left font-mono">STATUS</th>
+                                    <th class="px-4 py-3 text-left font-mono">OUTPUT</th>
                                     <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
                                 </tr>
                             </thead>
@@ -441,6 +464,12 @@
                             <div class="text-2xl font-bold text-white" id="metric-allowlist">0</div>
                             <div class="text-xs text-slate-400 mt-1">Allowed Users</div>
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="glass-card p-4 rounded-xl"><div class="text-xs text-slate-400">Audit Approved</div><div id="metric-audit-approved" class="text-xl font-bold text-green-400">0</div></div>
+                        <div class="glass-card p-4 rounded-xl"><div class="text-xs text-slate-400">Audit Pending</div><div id="metric-audit-pending" class="text-xl font-bold text-yellow-400">0</div></div>
+                        <div class="glass-card p-4 rounded-xl"><div class="text-xs text-slate-400">Runtime Errors</div><div id="metric-runtime-errors" class="text-xl font-bold text-red-400">0</div></div>
                     </div>
 
                     <div class="glass-card p-6 rounded-2xl">
@@ -716,6 +745,14 @@
                         <option value="hermit/python:latest">hermit/python (Data Analysis)</option>
                         <option value="hermit/netsec:latest">hermit/netsec (Security Tools)</option>
                     </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">PROFILE PICTURE URL</label>
+                    <input type="text" id="new-profile-picture" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white" placeholder="https://...">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">PROFILE BIO</label>
+                    <input type="text" id="new-profile-bio" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white" placeholder="Short intro">
                 </div>
                 <div class="flex items-center gap-3">
                     <input type="checkbox" id="new-require-approval" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-orange-500 focus:ring-orange-500">
@@ -1617,29 +1654,22 @@ cloudflared tunnel url crabshell
                 const stats = await statsRes.json();
                 const settings = await settingsRes.json();
 
-                document.getElementById('metric-containers').innerText = stats.activeContainers;
-                document.getElementById('metric-agents').innerText = stats.agentsCount;
-                document.getElementById('metric-spend').innerText = '$' + stats.totalSpendToday.toFixed(4);
-                document.getElementById('metric-allowlist').innerText = stats.allowlistCount;
+                document.getElementById('metric-containers').innerText = stats.activeContainers || 0;
+                document.getElementById('metric-agents').innerText = stats.totalAgents || 0;
+                document.getElementById('metric-spend').innerText = '$' + (stats.totalSpendToday || 0).toFixed(4);
+                document.getElementById('metric-allowlist').innerText = stats.allowlistCount || 0;
+                document.getElementById('metric-audit-approved').innerText = stats.metrics?.auditApprovals || 0;
+                document.getElementById('metric-audit-pending').innerText = stats.metrics?.auditPending || 0;
+                document.getElementById('metric-runtime-errors').innerText = stats.metrics?.runtimeErrors || 0;
 
                 const openaiStatus = document.getElementById('metric-openai');
                 const openrouterStatus = document.getElementById('metric-openrouter');
-
-                if (settings.openai_key_set) {
-                    openaiStatus.className = 'text-xs font-mono px-2 py-1 rounded bg-green-500/20 text-green-400';
-                    openaiStatus.innerText = 'Set';
-                } else {
-                    openaiStatus.className = 'text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400';
-                    openaiStatus.innerText = 'Not Set';
-                }
-
-                if (settings.openrouter_key_set) {
-                    openrouterStatus.className = 'text-xs font-mono px-2 py-1 rounded bg-green-500/20 text-green-400';
-                    openrouterStatus.innerText = 'Set';
-                } else {
-                    openrouterStatus.className = 'text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400';
-                    openrouterStatus.innerText = 'Not Set';
-                }
+                const openaiSet = !!(settings.openai_api_key || settings.openai_key_set);
+                const openrouterSet = !!(settings.openrouter_api_key || settings.openrouter_key_set);
+                openaiStatus.className = `text-xs font-mono px-2 py-1 rounded ${openaiSet ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`;
+                openaiStatus.innerText = openaiSet ? 'Set' : 'Not Set';
+                openrouterStatus.className = `text-xs font-mono px-2 py-1 rounded ${openrouterSet ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`;
+                openrouterStatus.innerText = openrouterSet ? 'Set' : 'Not Set';
             } catch (e) {}
         }
 
@@ -1716,6 +1746,42 @@ cloudflared tunnel url crabshell
             }
         }
 
+        function getAgentAvatar(agent) {
+            const fallback = `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(agent.name || 'agent')}`;
+            return agent.profile_picture_url || fallback;
+        }
+
+        function avatarImg(agent, mini = false) {
+            return `<img src="${getAgentAvatar(agent)}" class="${mini ? 'agent-avatar-mini' : 'agent-avatar'}" alt="${agent.name}"/>`;
+        }
+
+        async function loadRuntimeLogs() {
+            const out = document.getElementById('chat-output');
+            try {
+                const logs = await fetch('/api/runtime-logs?limit=20').then(r => r.json());
+                if (!Array.isArray(logs) || !logs.length) {
+                    out.innerText = 'No runtime logs yet.';
+                    return;
+                }
+                out.innerText = logs.slice(0, 10).map(l => `[${l.level}] agent#${l.agent_id} ${l.source}: ${l.message}`).join('\n');
+            } catch (e) {
+                out.innerText = 'Failed to load runtime logs.';
+            }
+        }
+
+        async function sendDashboardChat() {
+            const agentId = document.getElementById('chat-agent').value;
+            const message = document.getElementById('chat-message').value.trim();
+            const userId = document.getElementById('chat-user-id').value || 0;
+            const out = document.getElementById('chat-output');
+            if (!agentId || !message) return;
+            out.innerText = 'Sending...';
+            const res = await fetch(`/api/chat/${agentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, userId: Number(userId) }) });
+            const data = await res.json();
+            out.innerText = data.output || data.error || 'No response';
+            document.getElementById('chat-message').value = '';
+        }
+
         async function loadAgents() {
             try {
                 const res = await fetch('/api/agents');
@@ -1737,14 +1803,9 @@ cloudflared tunnel url crabshell
                             </div>
                             
                             <div class="mb-4">
-                                <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3">
-                                    <svg viewBox="0 0 100 100" class="w-7 h-7 fill-orange-500">
-                                        <path d="M50 20C30 20 20 35 20 50C20 65 30 80 50 80C70 80 80 65 80 50C80 35 70 20 50 20ZM35 45C37.7 45 40 47.3 40 50C40 52.7 37.7 55 35 55C32.3 55 30 52.7 30 50C30 47.3 32.3 45 35 45ZM65 45C67.7 45 70 47.3 70 50C70 52.7 67.7 55 65 55C62.3 55 60 52.7 60 50C60 47.3 62.3 45 65 45Z"/>
-                                        <path d="M15 30L25 40M10 50L25 50M15 70L25 60M85 30L75 40M90 50L75 50M85 70L75 60" stroke="#ff6b35" stroke-width="5" stroke-linecap="round"/>
-                                    </svg>
-                                </div>
+                                <div class="mb-3">${avatarImg(agent)}</div>
                                 <h3 class="text-xl font-bold text-white">${agent.name} ${hitlBadge}</h3>
-                                <p class="text-xs text-orange-400 font-mono mt-1">${agent.role}</p>
+                                <p class="text-xs text-orange-400 font-mono mt-1">${agent.role}</p><p class="text-xs text-slate-400 mt-1">${agent.profile_bio || ""}</p>
                             </div>
 
                             <div class="space-y-3 mb-6">
@@ -1782,6 +1843,10 @@ cloudflared tunnel url crabshell
                     `;
                     grid.innerHTML += card;
                 });
+                const chatAgent = document.getElementById('chat-agent');
+                if (chatAgent) {
+                    chatAgent.innerHTML = agents.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+                }
                 lucide.createIcons();
                 if (!document.getElementById('section-sites').classList.contains('hidden')) loadSites();
                 if (!document.getElementById('section-files').classList.contains('hidden')) loadFilesSection();
@@ -1816,7 +1881,7 @@ cloudflared tunnel url crabshell
                 grid.innerHTML = cachedAgents.map(agent => `
                     <div class="glass-card rounded-2xl p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <h4 class="font-bold text-white">${agent.name}</h4>
+                            <div class="flex items-center gap-2">${avatarImg(agent, true)}<h4 class="font-bold text-white">${agent.name}</h4></div>
                             <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">${agent.docker_image.split(':')[0]}</span>
                         </div>
                         <p class="text-xs text-slate-400 mb-3">Created by <span class="text-orange-300">${agent.name}</span> • port 8080 preview</p>
@@ -1871,7 +1936,8 @@ cloudflared tunnel url crabshell
                     browser.innerHTML = '<span class="text-slate-400">Workspace is empty.</span>';
                     return;
                 }
-                browser.innerHTML = rows.map(item => {
+                const selectedAgent = (cachedAgents || []).find(a => String(a.id) === String(agentId)) || { name: 'Agent' };
+                const listHtml = rows.map(item => {
                     const indent = '&nbsp;'.repeat(item.depth * 4);
                     const icon = item.type === 'directory' ? '📁' : '📄';
                     const download = item.type === 'file'
@@ -1879,6 +1945,7 @@ cloudflared tunnel url crabshell
                         : '';
                     return `<div class="py-1 border-b border-slate-800/70 last:border-b-0 mono text-xs">${indent}${icon} ${item.path}${download}</div>`;
                 }).join('');
+                browser.innerHTML = `<div class="flex items-center gap-2 mb-3 text-xs text-slate-400">${avatarImg(selectedAgent, true)}<span>${selectedAgent.name} workspace</span></div>${listHtml}`;
             } catch (e) {
                 browser.innerHTML = '<span class="text-red-400">Failed to load workspace files.</span>';
             }
@@ -1904,6 +1971,7 @@ cloudflared tunnel url crabshell
                             <td class="px-4 py-3">${agentMap[log.agent_id] || 'Unknown'}</td>
                             <td class="px-4 py-3 font-mono text-xs truncate max-w-xs" title="${log.command}">${log.command}</td>
                             <td class="px-4 py-3 ${statusColor} font-mono">${log.status.toUpperCase()}</td>
+                            <td class="px-4 py-3 text-xs text-slate-400 max-w-xs truncate" title="${log.output_snippet || ''}">${log.output_snippet || '-'}</td>
                             <td class="px-4 py-3">
                                 <button onclick="viewContainer('${log.container_id}')" class="text-orange-500 hover:text-white text-xs">View Terminal</button>
                             </td>
@@ -1926,6 +1994,8 @@ cloudflared tunnel url crabshell
             document.getElementById('new-token').value = agent.telegram_token;
             document.getElementById('new-image').value = agent.docker_image;
             document.getElementById('new-require-approval').checked = agent.require_approval === 1;
+            document.getElementById('new-profile-picture').value = agent.profile_picture_url || '';
+            document.getElementById('new-profile-bio').value = agent.profile_bio || '';
 
             if (confirm('Edit agent "' + agent.name + '"? Note: To change the token, you will need to re-verify.')) {
                 wizardStep = 1;
@@ -2032,6 +2102,8 @@ cloudflared tunnel url crabshell
             document.getElementById('new-role').value = '';
             document.getElementById('new-token').value = '';
             document.getElementById('new-require-approval').checked = false;
+            document.getElementById('new-profile-picture').value = '';
+            document.getElementById('new-profile-bio').value = '';
             wizardStep = 1;
             pendingVerificationToken = null;
             updateWizardUI();
@@ -2218,6 +2290,8 @@ cloudflared tunnel url crabshell
             const token = pendingVerificationToken || document.getElementById('new-token').value.trim();
             const image = document.getElementById('new-image').value;
             const requireApproval = document.getElementById('new-require-approval').checked ? 1 : 0;
+            const profilePicture = document.getElementById('new-profile-picture').value.trim();
+            const profileBio = document.getElementById('new-profile-bio').value.trim();
 
             document.getElementById('verify-status').classList.remove('hidden');
             document.getElementById('verify-loading').classList.remove('hidden');
@@ -2235,7 +2309,9 @@ cloudflared tunnel url crabshell
                             name,
                             role,
                             docker_image: image,
-                            require_approval: requireApproval
+                            require_approval: requireApproval,
+                            profile_picture_url: profilePicture,
+                            profile_bio: profileBio
                         }
                     })
                 });
@@ -2442,6 +2518,25 @@ cloudflared tunnel url crabshell
                 if (leftClawAuth) leftClawAuth.style.transform = 'rotate(0deg) scale(1)';
                 if (rightClawAuth) rightClawAuth.style.transform = 'rotate(0deg) scale(1)';
             });
+        }
+
+        async function downloadWorkspaceArchive() {
+            const agentId = document.getElementById('files-agent').value;
+            const userId = document.getElementById('files-user').value;
+            if (!agentId || !userId) return;
+            window.open(`/api/files/${agentId}/${userId}/download-all`, '_blank');
+        }
+
+        async function uploadWorkspaceFile(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const agentId = document.getElementById('files-agent').value;
+            const userId = document.getElementById('files-user').value;
+            if (!agentId || !userId) return;
+            const arr = await file.arrayBuffer();
+            const contentBase64 = btoa(String.fromCharCode(...new Uint8Array(arr)));
+            await fetch(`/api/files/${agentId}/${userId}/upload`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileName: file.name, contentBase64 }) });
+            loadWorkspaceFiles();
         }
 
         init();

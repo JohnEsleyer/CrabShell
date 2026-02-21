@@ -29,6 +29,8 @@ export interface Agent {
     docker_image: string;
     is_active: number;
     require_approval: number;
+    profile_picture_url?: string;
+    profile_bio?: string;
     created_at: string;
     budget?: {
         daily_limit_usd: number;
@@ -64,6 +66,16 @@ export interface AuditLog {
     created_at: string;
 }
 
+export interface AgentRuntimeLog {
+    id: number;
+    agent_id: number;
+    level: string;
+    source: string;
+    message: string;
+    context: string | null;
+    created_at: string;
+}
+
 export async function initDb(): Promise<void> {
     const db = await getClient();
 
@@ -77,6 +89,8 @@ export async function initDb(): Promise<void> {
             docker_image TEXT DEFAULT 'hermit/base',
             is_active INTEGER DEFAULT 1,
             require_approval INTEGER DEFAULT 0,
+            profile_picture_url TEXT,
+            profile_bio TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         
@@ -142,7 +156,28 @@ export async function initDb(): Promise<void> {
             FOREIGN KEY (initiator_id) REFERENCES agents(id),
             FOREIGN KEY (participant_id) REFERENCES agents(id)
         );
+
+        CREATE TABLE IF NOT EXISTS agent_runtime_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent_id INTEGER,
+            level TEXT DEFAULT 'info',
+            source TEXT DEFAULT 'system',
+            message TEXT,
+            context TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (agent_id) REFERENCES agents(id)
+        );
     `);
+
+    try {
+        await db.execute('ALTER TABLE agents ADD COLUMN profile_picture_url TEXT');
+    } catch (e) {
+    }
+
+    try {
+        await db.execute('ALTER TABLE agents ADD COLUMN profile_bio TEXT');
+    } catch (e) {
+    }
 
     try {
         await db.execute('ALTER TABLE allowlist ADD COLUMN is_operator INTEGER DEFAULT 0');
@@ -239,8 +274,8 @@ export async function createAgent(agent: Omit<Agent, 'id' | 'created_at'>): Prom
     const db = await getClient();
     
     const rs = await db.execute({
-        sql: `INSERT INTO agents (name, role, telegram_token, system_prompt, docker_image, is_active, require_approval) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        args: [agent.name, agent.role, agent.telegram_token, agent.system_prompt, agent.docker_image, agent.is_active, agent.require_approval || 0]
+        sql: `INSERT INTO agents (name, role, telegram_token, system_prompt, docker_image, is_active, require_approval, profile_picture_url, profile_bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [agent.name, agent.role, agent.telegram_token, agent.system_prompt, agent.docker_image, agent.is_active, agent.require_approval || 0, agent.profile_picture_url || '', agent.profile_bio || '']
     });
     
     const lastId = Number(rs.lastInsertRowid);
@@ -263,6 +298,8 @@ export async function updateAgent(id: number, updates: Partial<Agent>): Promise<
     if (updates.docker_image !== undefined) { fields.push('docker_image = ?'); values.push(updates.docker_image); }
     if (updates.is_active !== undefined) { fields.push('is_active = ?'); values.push(updates.is_active); }
     if (updates.require_approval !== undefined) { fields.push('require_approval = ?'); values.push(updates.require_approval); }
+    if (updates.profile_picture_url !== undefined) { fields.push('profile_picture_url = ?'); values.push(updates.profile_picture_url); }
+    if (updates.profile_bio !== undefined) { fields.push('profile_bio = ?'); values.push(updates.profile_bio); }
     
     if (fields.length > 0) {
         values.push(id);
@@ -524,6 +561,34 @@ export async function getAuditLogs(agentId?: number, limit: number = 50): Promis
     
     const rs = await db.execute({ sql, args });
     return rs.rows as unknown as AuditLog[];
+}
+
+export async function createAgentRuntimeLog(
+    agentId: number,
+    level: 'info' | 'warn' | 'error',
+    source: string,
+    message: string,
+    context?: Record<string, any>
+): Promise<void> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'INSERT INTO agent_runtime_logs (agent_id, level, source, message, context) VALUES (?, ?, ?, ?, ?)',
+        args: [agentId, level, source, message.slice(0, 500), context ? JSON.stringify(context).slice(0, 2000) : null]
+    });
+}
+
+export async function getAgentRuntimeLogs(agentId?: number, limit: number = 100): Promise<AgentRuntimeLog[]> {
+    const db = await getClient();
+    let sql = 'SELECT * FROM agent_runtime_logs';
+    const args: any[] = [];
+    if (agentId) {
+        sql += ' WHERE agent_id = ?';
+        args.push(agentId);
+    }
+    sql += ' ORDER BY created_at DESC LIMIT ?';
+    args.push(limit);
+    const rs = await db.execute({ sql, args });
+    return rs.rows as unknown as AgentRuntimeLog[];
 }
 
 export function extractId(record: any): number {

@@ -1,4 +1,4 @@
-import { getAgentByToken, isAllowed, getBudget, updateSpend, canSpend, updateAuditLog, getAgentById, getSetting, getOperator, getActiveMeetings, createMeeting, updateMeetingTranscript, closeMeeting, getAllAgents } from './db';
+import { getAgentByToken, isAllowed, getBudget, updateSpend, canSpend, updateAuditLog, getAgentById, getSetting, getOperator, getActiveMeetings, createMeeting, updateMeetingTranscript, closeMeeting, getAllAgents, createAgentRuntimeLog } from './db';
 import { spawnAgent, docker, getCubicleStatus, stopCubicle, removeCubicle, listContainers } from './docker';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -125,6 +125,7 @@ export async function handleTelegramUpdate(token: string, update: TelegramUpdate
 
     const userId = update.message.from.id;
     if (!await isAllowed(userId)) {
+        await createAgentRuntimeLog(agent.id, 'warn', 'telegram', 'Unauthorized user blocked', { userId });
         const username = update.message.from.username || 'unknown';
         const firstName = update.message.from.first_name || '';
         console.log(`[UNAUTHORIZED] Telegram user tried to message bot:`);
@@ -354,6 +355,8 @@ export async function processAgentMessage(
         return { output: 'Agent not found.' };
     }
 
+    await createAgentRuntimeLog(agent.id, 'info', 'telegram', 'Message received', { userId, chatId, preview: text.slice(0, 120) });
+
     await sendChatAction(token, chatId, 'typing');
     
     if (statusMessageId) {
@@ -446,6 +449,7 @@ export async function processAgentMessage(
         return { output: result.output, messageId: statusMessageId };
     } catch (error: any) {
         console.error(`[${agent.name}] Error:`, error);
+        await createAgentRuntimeLog(agent.id, 'error', 'telegram', error.message || 'Agent processing failed', { userId, chatId });
         return { output: `Error: ${error.message}`, messageId: statusMessageId };
     }
 }
