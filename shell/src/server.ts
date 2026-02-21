@@ -16,8 +16,8 @@ import { execFileSync } from 'child_process';
 import cookie from '@fastify/cookie';
 
 const PORT = process.env.PORT || 3000;
-const SESSION_SECRET = process.env.SESSION_SECRET || 'crabshell-secret-change-in-production';
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'crabshell-webhook-secret';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'hermitshell-secret-change-in-production';
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'hermitshell-webhook-secret';
 
 const pendingVerifications = new Map<string, { code: string; timestamp: number }>();
 const previewPasswords = new Map<string, string>();
@@ -45,7 +45,7 @@ export async function startServer() {
     ];
 
     const getSessionToken = (request: any): string | undefined => {
-        const cookieToken = request.cookies?.crabshell_session;
+        const cookieToken = request.cookies?.hermitshell_session;
         if (cookieToken) return cookieToken;
 
         const authHeader = request.headers?.authorization;
@@ -107,7 +107,7 @@ export async function startServer() {
 
         const token = generateSessionToken(admin.id);
         
-        reply.setCookie('crabshell_session', token, {
+        reply.setCookie('hermitshell_session', token, {
             path: '/',
             httpOnly: true,
             secure: false,
@@ -119,7 +119,7 @@ export async function startServer() {
     });
 
     fastify.post('/api/auth/logout', async (request: any, reply: any) => {
-        reply.clearCookie('crabshell_session');
+        reply.clearCookie('hermitshell_session');
         return { success: true };
     });
 
@@ -131,7 +131,7 @@ export async function startServer() {
         if (admin) {
             const { hash, salt } = hashPassword(password);
             await updateAdmin(admin.id, username, hash, salt);
-            reply.clearCookie('crabshell_session');
+            reply.clearCookie('hermitshell_session');
             return { success: true };
         }
         return reply.code(400).send({ error: 'Admin record not found' });
@@ -796,7 +796,7 @@ export async function startServer() {
         }
         
         const containers = await listContainers();
-        const target = containers.find((c: any) => c.Labels?.['crabshell.agent_id'] === String(agentId));
+        const target = containers.find((c: any) => c.Labels?.['hermitshell.agent_id'] === String(agentId));
         
         if (!target || target.State !== 'running') {
             return reply.code(404).send({ error: 'Agent container not running' });
@@ -856,7 +856,7 @@ export async function startServer() {
         }
         
         const containers = await listContainers();
-        const target = containers.find((c: any) => c.Labels?.['crabshell.agent_id'] === String(agentId));
+        const target = containers.find((c: any) => c.Labels?.['hermitshell.agent_id'] === String(agentId));
         
         if (!target || target.State !== 'running') {
             return reply.code(404).send({ error: 'Agent container not running' });

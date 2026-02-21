@@ -1,5 +1,5 @@
 {
-  "name": "crabshell",
+  "name": "hermitshell",
   "version": "1.0.0",
   "description": "The Shell - Node.js host controller for CrabShell",
   "main": "dist/server.js",

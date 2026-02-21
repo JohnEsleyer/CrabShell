@@ -140,7 +140,7 @@ Your Telegram ID: \`${userId}\`
 
 To get access, follow these steps:
 
-*Step 1:* Open your web browser and go to the CrabShell Dashboard (ask your admin for the link)
+*Step 1:* Open your web browser and go to the HermitShell Dashboard (ask your admin for the link)
 
 *Step 2:* Log in with your admin credentials
 
@@ -183,7 +183,7 @@ To get access, follow these steps:
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: chatId,
-                text: `🦀 *Welcome to CrabShell!*\n\nI'm *${agent.name}*, your AI assistant.\n\n*Role:* ${agent.role || 'General'}\n\nUse the menu below or just send me a message to start!`,
+                text: `🦀 *Welcome to HermitShell!*\n\nI'm *${agent.name}*, your AI assistant.\n\n*Role:* ${agent.role || 'General'}\n\nUse the menu below or just send me a message to start!`,
                 parse_mode: 'Markdown',
                 reply_markup: keyboard
             })
@@ -596,7 +596,7 @@ export async function sendVerificationCode(token: string, chatId: number, code: 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: chatId,
-                text: `🛡️ *CrabShell Agent Verification*\n\nYou are linking this bot to the Orchestrator.\n\nYour verification code is: \`${code}\`\n\nEnter this code in the dashboard to complete setup.`,
+                text: `🛡️ *HermitShell Agent Verification*\n\nYou are linking this bot to the Orchestrator.\n\nYour verification code is: \`${code}\`\n\nEnter this code in the dashboard to complete setup.`,
                 parse_mode: 'Markdown'
             })
         });
@@ -886,7 +886,7 @@ async function handleBudgetCommand(agent: any): Promise<string> {
 }
 
 async function handleHelpCommand(agent: any): Promise<string> {
-    return `🦀 *CrabShell Commands*
+    return `🦀 *HermitShell Commands*
 
 *Agent Commands:*
 /status - Cubicle status (running/stopped)

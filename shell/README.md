@@ -1,4 +1,4 @@
-# CrabShell
+# HermitShell
 
 A secure shell wrapper with Telegram bot integration for managing AI agents.
 
@@ -20,7 +20,7 @@ On first launch, you'll see the **Initialization Screen** where you can create y
 
 ### Locked Login Page After Reinstall
 
-If after cleaning and reinstalling the app, the initial page shows a locked login page instead of the user credentials setup screen, the issue is that the CrabShell server detects that an entry already exists in the `admins` table. Even after a "clean reinstall," the persistent data stored in the `data/` directory often survives unless explicitly deleted.
+If after cleaning and reinstalling the app, the initial page shows a locked login page instead of the user credentials setup screen, the issue is that the HermitShell server detects that an entry already exists in the `admins` table. Even after a "clean reinstall," the persistent data stored in the `data/` directory often survives unless explicitly deleted.
 
 To fix this and trigger the **Initialization Screen** (Setup), follow these steps:
 
@@ -28,7 +28,7 @@ To fix this and trigger the **Initialization Screen** (Setup), follow these step
 
 The database file is stored in `data/db/`. You need to delete this file to force the system to return to "Setup Mode."
 
-Run this command from the root of the `crabshell` folder:
+Run this command from the root of the `hermitshell` folder:
 
 ```bash
 rm -rf data/db/*.db
@@ -62,11 +62,11 @@ if (adminCount === 0) {
 }
 ```
 
-If you didn't delete the `data/` folder during your "clean reinstall," the old `crabshell.db` file was still there. Since that file contained your old admin account, the system skipped setup and went straight to the login (Locked) screen.
+If you didn't delete the `data/` folder during your "clean reinstall," the old `hermitshell.db` file was still there. Since that file contained your old admin account, the system skipped setup and went straight to the login (Locked) screen.
 
 ### Troubleshooting persistence (Docker)
 
-If you are running CrabShell via **Docker Compose**, the data is likely trapped in a Docker Volume. To truly wipe it, run:
+If you are running HermitShell via **Docker Compose**, the data is likely trapped in a Docker Volume. To truly wipe it, run:
 
 ```bash
 docker-compose down -v

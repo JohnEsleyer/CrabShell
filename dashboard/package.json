@@ -1,5 +1,5 @@
 {
-  "name": "crabshell-dashboard",
+  "name": "hermitshell-dashboard",
   "version": "1.0.0",
   "description": "Web Dashboard for CrabShell",
   "main": "dist/server.js",

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrabShell Dashboard</title>
+    <title>HermitShell Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
@@ -126,7 +126,7 @@
                         <path d="M15 30L25 40M10 50L25 50M15 70L25 60M85 30L75 40M90 50L75 50M85 70L75 60" stroke="#ff6b35" stroke-width="5" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold tracking-tight text-white mb-2 gradient-text">CrabShell</h1>
+                <h1 class="text-3xl font-bold tracking-tight text-white mb-2 gradient-text">HermitShell</h1>
                 <p id="auth-title" class="text-orange-500 font-mono text-sm">SECURE_SHELL_ACCESS</p>
             </div>
 
@@ -173,7 +173,7 @@
                     <path d="M50 20C30 20 20 35 20 50C20 65 30 80 50 80C70 80 80 65 80 50C80 35 70 20 50 20ZM35 45C37.7 45 40 47.3 40 50C40 52.7 37.7 55 35 55C32.3 55 30 52.7 30 50C30 47.3 32.3 45 35 45ZM65 45C67.7 45 70 47.3 70 50C70 52.7 67.7 55 65 55C62.3 55 60 52.7 60 50C60 47.3 62.3 45 65 45Z"/>
                     <path d="M15 30L25 40M10 50L25 50M15 70L25 60M85 30L75 40M90 50L75 50M85 70L75 60" stroke="#ff6b35" stroke-width="5" stroke-linecap="round"/>
                 </svg>
-                <h1 class="font-bold tracking-tight text-lg text-white">CrabShell</h1>
+                <h1 class="font-bold tracking-tight text-lg text-white">HermitShell</h1>
             </div>
 
             <nav class="flex-1 p-4 space-y-2">
@@ -868,7 +868,7 @@
                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
                     <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span id="term-title" class="ml-2 text-slate-400">root@crabshell:~</span>
+                    <span id="term-title" class="ml-2 text-slate-400">root@hermitshell:~</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="attachTerminal()" class="text-orange-500 hover:text-white text-sm" title="Attach to container">
@@ -893,7 +893,7 @@
             </div>
             <div class="p-6 space-y-6 text-slate-300">
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                    <p class="text-sm text-blue-300"><strong>What is a Webhook?</strong> A webhook tells Telegram to send messages to your CrabShell server instead of your bot polling for updates. It's the standard way to receive messages in production.</p>
+                    <p class="text-sm text-blue-300"><strong>What is a Webhook?</strong> A webhook tells Telegram to send messages to your HermitShell server instead of your bot polling for updates. It's the standard way to receive messages in production.</p>
                 </div>
 
                 <div>
@@ -902,8 +902,8 @@
                     <div class="bg-slate-800 p-3 rounded-lg font-mono text-sm text-green-400">
 # Using Cloudflare Tunnel (recommended)<br>
 curl -sL https://run.cloudflare.com/ | sh<br>
-cloudflared tunnel create crabshell<br>
-cloudflared tunnel url crabshell
+cloudflared tunnel create hermitshell<br>
+cloudflared tunnel url hermitshell
                     </div>
                     <p class="text-xs text-slate-500 mt-2">Or use <a href="https://ngrok.com" target="_blank" class="text-orange-400 hover:underline">ngrok</a>: <code class="bg-slate-800 px-1 rounded">ngrok http 3000</code></p>
                 </div>
@@ -958,7 +958,7 @@ cloudflared tunnel url crabshell
             </div>
             <div class="p-6 space-y-6 text-slate-300">
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                    <p class="text-sm text-blue-300"><strong>Short Answer:</strong> Telegram needs to send messages to your CrabShell server. Without a public URL, Telegram can't reach your server.</p>
+                    <p class="text-sm text-blue-300"><strong>Short Answer:</strong> Telegram needs to send messages to your HermitShell server. Without a public URL, Telegram can't reach your server.</p>
                 </div>
 
                 <div>
@@ -967,7 +967,7 @@ cloudflared tunnel url crabshell
                 </div>
 
                 <div>
-                    <h4 class="text-white font-bold mb-3">Why Does CrabShell Need It?</h4>
+                    <h4 class="text-white font-bold mb-3">Why Does HermitShell Need It?</h4>
                     <ul class="text-sm text-slate-400 space-y-2">
                         <li class="flex items-start gap-2">
                             <i data-lucide="check-circle" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i>
@@ -1013,7 +1013,7 @@ cloudflared tunnel url crabshell
                                 <li>• Rent a VPS (DigitalOcean, Linode, AWS, etc.)</li>
                                 <li>• Point a domain to your server's IP</li>
                                 <li>• Set up SSL with Let's Encrypt/Caddy</li>
-                                <li>• Use your domain: <code class="bg-slate-800 px-1 rounded">https://crabshell.yourdomain.com</code></li>
+                                <li>• Use your domain: <code class="bg-slate-800 px-1 rounded">https://hermitshell.yourdomain.com</code></li>
                             </ul>
                         </div>
 
@@ -1111,7 +1111,7 @@ cloudflared tunnel url crabshell
         let pendingVerificationToken = null;
         window.usingDefaultCreds = false;
 
-        const AUTH_TOKEN_KEY = 'crabshell_session_token';
+        const AUTH_TOKEN_KEY = 'hermitshell_session_token';
         const nativeFetch = window.fetch.bind(window);
 
         function getStoredSessionToken() {
@@ -2265,7 +2265,7 @@ cloudflared tunnel url crabshell
 
         async function openTerminal(id, name) {
             currentAgentId = id;
-            document.getElementById('term-title').innerText = `ssh ${name.toLowerCase()}@crabshell`;
+            document.getElementById('term-title').innerText = `ssh ${name.toLowerCase()}@hermitshell`;
             document.getElementById('terminal-modal').classList.remove('hidden');
 
             if (!term) {

@@ -41,7 +41,7 @@ const CACHE_DIR = path.join(__dirname, '../../data/cache');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-const LABEL_PREFIX = 'crabshell.';
+const LABEL_PREFIX = 'hermitshell.';
 const LABELS = {
     AGENT_ID: `${LABEL_PREFIX}agent_id`,
     USER_ID: `${LABEL_PREFIX}user_id`,

@@ -117,7 +117,7 @@ export async function syncWebhooks(port: number): Promise<number> {
     const { getAllAgents } = await import('./db');
     const { registerWebhook } = await import('./telegram');
     
-    const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'crabshell-webhook-secret';
+    const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'hermitshell-webhook-secret';
     
     if (!currentUrl) {
         console.log('[Tunnel] No tunnel URL, skipping webhook sync');
