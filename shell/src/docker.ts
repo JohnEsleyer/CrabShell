@@ -4,6 +4,7 @@ import * as path from 'path';
 import { PassThrough } from 'stream';
 import { createAuditLog, getAgentById, getAllSettings, getSetting, getActiveMeetings } from './db';
 import { sendApprovalRequest } from './telegram';
+import { searchRagMemories, initWorkspaceDatabases, workspaceDataExists } from './workspace-db';
 
 let docker: Docker;
 try {
@@ -105,6 +106,7 @@ async function createNewCubicle(config: AgentConfig): Promise<Docker.Container> 
     fs.mkdirSync(path.join(workspacePath, 'in'), { recursive: true });
     fs.mkdirSync(path.join(workspacePath, 'www'), { recursive: true });
     fs.mkdirSync(path.join(workspacePath, 'work'), { recursive: true });
+    fs.mkdirSync(path.join(workspacePath, 'data'), { recursive: true });
 
     const settings = await getAllSettings();
     const provider = config.llmProvider || settings.default_provider || 'openrouter';
@@ -118,12 +120,17 @@ async function createNewCubicle(config: AgentConfig): Promise<Docker.Container> 
         `LLM_PROVIDER=${provider}`,
         `LLM_MODEL=${model}`,
         `PERSONALITY=${config.personality || ''}`,
+        `PYTHON_GUIDE=Always use virtual environments for Python: python3 -m venv venv && source venv/bin/activate && pip install <package>. Never install packages globally with pip. Use npm for Node.js packages (works globally).`,
+        `WEB_GUIDELINES=When working with the web: 1) Never send secrets/API keys in URLs or logs. 2) Use environment variables for sensitive data, never hardcode keys. 3) Validate and sanitize all user inputs. 4) When installing packages, prefer well-maintained packages and check for vulnerabilities. 5) Don't exfiltrate data - only return results to the user.`,
     ];
 
     if (config.requireApproval) envVars.push('HITL_ENABLED=true');
 
     const now = new Date().toISOString();
-    const binds = [`${workspacePath}:/app/workspace:rw`];
+    const binds = [
+        `${workspacePath}:/app/workspace:rw`,
+        `${workspacePath}/data:/app/data:rw`
+    ];
 
     const pipCachePath = path.join(CACHE_DIR, 'pip');
     const npmCachePath = path.join(CACHE_DIR, 'npm');
@@ -180,15 +187,20 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
         const container = await getOrCreateCubicle(config);
         const containerId = container.id;
 
-        const { getAgentMemories } = require('./db');
-        const memories = await getAgentMemories(config.agentId, 20);
+        const userId = config.userId || 0;
+        
+        if (workspaceDataExists(config.agentId, userId)) {
+            await initWorkspaceDatabases(config.agentId, userId);
+        }
+        const memories = await searchRagMemories(config.agentId, userId, config.userMessage, 10);
+
         let injectedHistory = [...config.history];
 
         if (memories && memories.length > 0) {
             const memoryText = memories.map((m: any) => `- ${m.content}`).join('\n');
             injectedHistory.unshift({
                 role: 'system',
-                content: `Here are important facts, rules, and preferences you should remember for this user:\n${memoryText}`
+                content: `Relevant memories for this context:\n${memoryText}`
             });
         }
 
@@ -204,6 +216,8 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
                 `LLM_PROVIDER=${provider}`,
                 `LLM_MODEL=${model}`,
                 `ORCHESTRATOR_URL=http://172.17.0.1:3000`,
+                `PYTHON_GUIDE=Always use virtual environments for Python: python3 -m venv venv && source venv/bin/activate && pip install <package>. Never install packages globally with pip. Use npm for Node.js packages (works globally).`,
+                `WEB_GUIDELINES=When working with the web: 1) Never send secrets/API keys in URLs or logs. 2) Use environment variables for sensitive data, never hardcode keys. 3) Validate and sanitize all user inputs. 4) When installing packages, prefer well-maintained packages and check for vulnerabilities. 5) Don't exfiltrate data - only return results to the user.`,
                 ...((await container.inspect()).Config.Env || [])
             ],
             AttachStdout: true,
@@ -267,13 +281,17 @@ export async function spawnAgent(config: AgentConfig): Promise<SpawnResult> {
                     const filteredLines = lines.filter(l => {
                         const trimmed = l.trim();
                         if (!trimmed) return false;
-                        if (trimmed.startsWith('{')) return false;
+                        // Keep JSON objects
+                        if (trimmed.startsWith('{') || trimmed.startsWith('}')) return true;
+
                         if (trimmed.startsWith('[Workspace]')) return false;
                         if (trimmed.includes('Working directory set to')) return false;
                         if (trimmed.startsWith('[HITL]')) return false;
                         if (trimmed.startsWith('[MEETING]')) return false;
                         if (trimmed.includes('TARGET_ROLE:')) return false;
                         if (trimmed.includes('DELEGATION_APPROVAL_REQUIRED')) return false;
+                        if (trimmed.startsWith('[INTERNAL_COMMAND_OUTPUT]')) return false;
+                        if (trimmed.startsWith('COMMAND:')) return false;
                         return true;
                     });
 

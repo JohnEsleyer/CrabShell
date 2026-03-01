@@ -2,10 +2,18 @@ import { handleTelegramUpdate, sendTelegramMessage, smartReply, processAgentMess
 import {
     getAllAgents, isAllowed, initDb, getAdminCount, createAdmin, getAdmin, getFirstAdmin, updateAdmin,
     getAllSettings, setSetting, getBudget, getAllowlist, addToAllowlist, removeFromAllowlist,
-    getTotalSpend, getAllBudgets, updateAgent, deleteAgent, updateBudget, createAgent,
+    getTotalSpend, getAllBudgets, updateAgent, deleteAgent, updateBudget, createAgent, createBudget, resetBudget,
     getAuditLogs, getAgentById, getAgentByToken, getSetting, setOperator, getOperator,
-    createAgentRuntimeLog, getAgentRuntimeLogs, getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getCalendarEventById
+    createAgentRuntimeLog, getAgentRuntimeLogs,
+    createSiteScreenshot, getSiteScreenshots, createSiteTunnel, getActiveSiteTunnel, deactivateSiteTunnel, updateAgentStatus
 } from './db';
+import {
+    initWorkspaceDatabases, createCalendarEvent as wsCreateCalendarEvent, getCalendarEvents as wsGetCalendarEvents,
+    updateCalendarEvent as wsUpdateCalendarEvent, getCalendarEventById as wsGetCalendarEventById,
+    deleteCalendarEvent as wsDeleteCalendarEvent, claimDueCalendarEvents as wsClaimDueCalendarEvents,
+    storeRagMemory as wsStoreRagMemory, getRagMemories as wsGetRagMemories, searchRagMemories as wsSearchRagMemories,
+    deleteRagMemory as wsDeleteRagMemory, clearRagMemories as wsClearRagMemories
+} from './workspace-db';
 import { checkDocker, listContainers, getContainerExec, docker, spawnAgent, restartAgentContainer } from './docker';
 import { hashPassword, verifyPassword, generateSessionToken } from './auth';
 import { startTunnel, syncWebhooks, getTunnelUrl } from './tunnel';
@@ -66,8 +74,9 @@ export async function startServer() {
     fastify.get('/api/agents/:id/memory', async (request: any, reply: any) => {
         try {
             const agentId = Number(request.params.id);
-            const { getAgentMemories } = require('./db');
-            const memories = await getAgentMemories(agentId, 50);
+            const userId = Number(request.query.userId) || 0;
+            await initWorkspaceDatabases(agentId, userId);
+            const memories = await wsGetRagMemories(agentId, userId, 50);
             return { memories };
         } catch (e: any) {
             return reply.code(500).send({ error: e.message });
@@ -77,11 +86,29 @@ export async function startServer() {
     fastify.post('/api/agents/:id/memory', async (request: any, reply: any) => {
         try {
             const agentId = Number(request.params.id);
+            const userId = Number(request.body?.userId) || 0;
             const { content } = request.body;
             if (!content) return reply.code(400).send({ error: 'Missing content' });
-            const { storeMemory } = require('./db');
-            const id = await storeMemory(agentId, content, [0]);
+
+            await initWorkspaceDatabases(agentId, userId);
+            const id = await wsStoreRagMemory({
+                agent_id: agentId,
+                user_id: userId,
+                content: content
+            });
             return { success: true, memoryId: id };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.delete('/api/agents/:id/memory', async (request: any, reply: any) => {
+        try {
+            const agentId = Number(request.params.id);
+            const userId = Number(request.query.userId) || 0;
+            await initWorkspaceDatabases(agentId, userId);
+            await wsClearRagMemories(agentId, userId);
+            return { success: true };
         } catch (e: any) {
             return reply.code(500).send({ error: e.message });
         }
@@ -89,9 +116,11 @@ export async function startServer() {
 
     fastify.delete('/api/agents/:agentId/memory/:memoryId', async (request: any, reply: any) => {
         try {
+            const agentId = Number(request.params.agentId);
             const memoryId = Number(request.params.memoryId);
-            const { deleteMemory } = require('./db');
-            await deleteMemory(memoryId);
+            const userId = Number(request.query.userId) || 0;
+            await initWorkspaceDatabases(agentId, userId);
+            await wsDeleteRagMemory(memoryId, agentId, userId);
             return { success: true };
         } catch (e: any) {
             return reply.code(500).send({ error: e.message });
@@ -395,14 +424,17 @@ export async function startServer() {
 
     fastify.get('/api/agents/:agentId/calendars', async (request: any, reply: any) => {
         const agentId = Number(request.params.agentId);
+        const userId = Number(request.query.userId) || 0;
         const agent = await getAgentById(agentId);
         if (!agent) return reply.code(404).send({ error: 'Agent not found' });
-        const events = await getCalendarEvents(agentId);
+        await initWorkspaceDatabases(agentId, userId);
+        const events = await wsGetCalendarEvents(agentId, userId);
         return { events };
     });
 
     fastify.post('/api/agents/:agentId/calendars', async (request: any, reply: any) => {
         const agentId = Number(request.params.agentId);
+        const userId = Number(request.body?.userId) || 0;
         const agent = await getAgentById(agentId);
         if (!agent) return reply.code(404).send({ error: 'Agent not found' });
 
@@ -411,7 +443,8 @@ export async function startServer() {
             return reply.code(400).send({ error: 'title, prompt, start_time and target_user_id are required' });
         }
 
-        const id = await createCalendarEvent({
+        await initWorkspaceDatabases(agentId, userId);
+        const id = await wsCreateCalendarEvent({
             agent_id: agentId,
             title: String(title),
             prompt: String(prompt),
@@ -420,16 +453,17 @@ export async function startServer() {
             target_user_id: Number(target_user_id),
             color: color ? String(color).slice(0, 32) : null,
             symbol: symbol ? String(symbol).slice(0, 16) : null
-        });
+        }, userId);
         return { success: true, id };
     });
 
     fastify.put('/api/agents/:agentId/calendars/:eventId', async (request: any, reply: any) => {
         const agentId = Number(request.params.agentId);
         const eventId = Number(request.params.eventId);
+        const userId = Number(request.body?.userId) || 0;
         const agent = await getAgentById(agentId);
         if (!agent) return reply.code(404).send({ error: 'Agent not found' });
-        const event = await getCalendarEventById(eventId);
+        const event = await wsGetCalendarEventById(eventId, agentId, userId);
         if (!event || event.agent_id !== agentId) return reply.code(404).send({ error: 'Calendar event not found' });
 
         const allowed = ['title', 'prompt', 'start_time', 'end_time', 'target_user_id', 'status', 'color', 'symbol'];
@@ -439,18 +473,19 @@ export async function startServer() {
         }
         if (updates.target_user_id !== undefined) updates.target_user_id = Number(updates.target_user_id);
 
-        await updateCalendarEvent(eventId, updates);
+        await wsUpdateCalendarEvent(eventId, agentId, updates, userId);
         return { success: true };
     });
 
     fastify.delete('/api/agents/:agentId/calendars/:eventId', async (request: any, reply: any) => {
         const agentId = Number(request.params.agentId);
         const eventId = Number(request.params.eventId);
+        const userId = Number(request.query.userId) || 0;
         const agent = await getAgentById(agentId);
         if (!agent) return reply.code(404).send({ error: 'Agent not found' });
-        const event = await getCalendarEventById(eventId);
+        const event = await wsGetCalendarEventById(eventId, agentId, userId);
         if (!event || event.agent_id !== agentId) return reply.code(404).send({ error: 'Calendar event not found' });
-        await deleteCalendarEvent(eventId);
+        await wsDeleteCalendarEvent(eventId, agentId, userId);
         return { success: true };
     });
 
@@ -592,6 +627,16 @@ export async function startServer() {
 
     fastify.delete('/api/agents/:id', async (request: any) => {
         await deleteAgent(Number(request.params.id));
+        return { success: true };
+    });
+
+    fastify.post('/api/agents/:id/reset-budget', async (request: any, reply: any) => {
+        const agentId = Number(request.params.id);
+        const agent = await getAgentById(agentId);
+        if (!agent) {
+            return reply.code(404).send({ error: 'Agent not found' });
+        }
+        await resetBudget(agentId);
         return { success: true };
     });
 
@@ -989,6 +1034,130 @@ export async function startServer() {
         if (!removed) return reply.code(404).send({ error: 'Site not found' });
 
         return { success: true };
+    });
+
+    fastify.post('/api/sites/:agentId/:userId/:siteName/screenshot', async (request: any, reply: any) => {
+        try {
+            const { agentId, userId, siteName } = request.params;
+            const screenshotDir = path.join(__dirname, '../../data/screenshots');
+            
+            if (!fs.existsSync(screenshotDir)) {
+                fs.mkdirSync(screenshotDir, { recursive: true });
+            }
+            
+            const filename = `${agentId}_${userId}_${siteName}_${Date.now()}.png`;
+            const screenshotPath = path.join(screenshotDir, filename);
+            
+            await createSiteScreenshot({
+                agent_id: Number(agentId),
+                user_id: Number(userId),
+                site_name: siteName,
+                screenshot_path: screenshotPath
+            });
+            
+            return { success: true, screenshotPath: `/api/screenshots/${filename}` };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.get('/api/sites/:agentId/:userId/:siteName/screenshot', async (request: any, reply: any) => {
+        try {
+            const { agentId, userId, siteName } = request.params;
+            const screenshots = await getSiteScreenshots(Number(agentId), Number(userId), siteName);
+            if (screenshots.length > 0) {
+                return { screenshot: screenshots[0] };
+            }
+            return { screenshot: null };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.post('/api/sites/:agentId/:userId/:siteName/tunnel', async (request: any, reply: any) => {
+        try {
+            const { agentId, userId, siteName } = request.params;
+            const tunnelUrl = getTunnelUrl();
+            
+            if (!tunnelUrl) {
+                return reply.code(500).send({ error: 'Tunnel not available' });
+            }
+            
+            const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+            const siteTunnelUrl = `${tunnelUrl}/preview/${agentId}/8080/`;
+            
+            await createSiteTunnel({
+                agent_id: Number(agentId),
+                user_id: Number(userId),
+                site_name: siteName,
+                tunnel_url: siteTunnelUrl,
+                expires_at: expiresAt
+            });
+            
+            return { 
+                success: true, 
+                tunnelUrl: siteTunnelUrl,
+                expiresAt
+            };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.get('/api/sites/:agentId/:userId/:siteName/tunnel', async (request: any, reply: any) => {
+        try {
+            const { agentId, userId, siteName } = request.params;
+            const tunnel = await getActiveSiteTunnel(Number(agentId), Number(userId), siteName);
+            if (tunnel) {
+                return { tunnel };
+            }
+            return { tunnel: null };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.delete('/api/sites/:agentId/:userId/:siteName/tunnel', async (request: any, reply: any) => {
+        try {
+            const { agentId, userId, siteName } = request.params;
+            const tunnel = await getActiveSiteTunnel(Number(agentId), Number(userId), siteName);
+            if (tunnel) {
+                await deactivateSiteTunnel(tunnel.id);
+            }
+            return { success: true };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.get('/api/agents/:id/status', async (request: any, reply: any) => {
+        try {
+            const agentId = Number(request.params.id);
+            const agent = await getAgentById(agentId);
+            if (!agent) {
+                return reply.code(404).send({ error: 'Agent not found' });
+            }
+            return { 
+                status: (agent as any).status || 'idle',
+                lastActiveAt: (agent as any).last_active_at
+            };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
+    });
+
+    fastify.put('/api/agents/:id/status', async (request: any, reply: any) => {
+        try {
+            const agentId = Number(request.params.id);
+            const { status } = request.body;
+            if (!['idle', 'active'].includes(status)) {
+                return reply.code(400).send({ error: 'Invalid status' });
+            }
+            await updateAgentStatus(agentId, status);
+            return { success: true };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
+        }
     });
 
 

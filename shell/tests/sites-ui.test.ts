@@ -7,24 +7,38 @@ describe('sites-ui renderer', () => {
     expect(html).toContain('No published web apps found');
   });
 
-  it('renders site rows with password controls', () => {
+  it('renders site rows with web apps', () => {
     const html = renderSitesTable([
       {
         agentId: 7,
         userId: 42,
         agentName: 'Builder',
         imageLabel: 'hermitshell/python',
-        previewUrl: 'https://demo.example/preview/7/8080/',
-        hasPassword: true,
+        webApps: [
+          {
+            agentId: 7,
+            userId: 42,
+            workspaceId: '7_42',
+            siteName: 'myapp',
+            agentName: 'Builder',
+            imageLabel: 'hermitshell/python',
+            previewUrl: 'https://demo.example/preview/7/8080/',
+            localUrl: 'http://localhost:8080/',
+            hasPassword: false,
+            hasIndexHtml: true,
+            hasStyles: false,
+            files: ['index.html', 'style.css']
+          }
+        ],
+        hasPassword: false,
         passwordUpdatedAt: '2026-01-01T00:00:00.000Z'
       }
     ]);
 
     expect(html).toContain('Builder');
-    expect(html).toContain('https://demo.example/preview/7/8080/');
-    expect(html).toContain('Reveal Password');
-    expect(html).toContain('js-regenerate-password');
+    expect(html).toContain('myapp');
+    expect(html).toContain('index.html');
+    expect(html).toContain('View');
     expect(html).toContain('js-delete-site');
-    expect(html).toContain('site-password-7-8080');
   });
 });

@@ -28,7 +28,10 @@ When an agent creates a file it wants the user to see:
 ## 🌍 Web Portal (Hosted Websites)
 
 If an agent hosts a simple website (e.g., by running `python -m http.server`), the user can access it directly:
-- The agent places any HTML/CSS/JS files in `/app/workspace/www/`.
+
+- The agent places HTML/CSS/JS files in `/app/workspace/www/[app_name]/`
+- **Each subfolder is a separate web app** with its own `index.html`
+- Use vanilla HTML/CSS/JS only (no frameworks)
 - The Orchestrator serves these files under a unique URL like:
   `{public_url}/preview/{agentId}_{userId}/`
 - This allows for rich, interactive UIs to be built and "deployed" instantly by an agent.

@@ -255,7 +255,6 @@
                 padding: 1rem;
             }
         }
-
     </style>
 </head>
 
@@ -356,28 +355,54 @@
                     class="nav-item flex items-center space-x-3 px-4 py-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-xl">
                     <i data-lucide="grid" class="w-5 h-5"></i><span class="font-semibold">Agents</span>
                 </a>
-                <a href="#" data-section="cubicles" onclick="showSection('cubicles')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="box" class="w-5 h-5"></i><span>Cubicles</span></a>
-                <a href="#" data-section="sites" onclick="showSection('sites')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="globe" class="w-5 h-5"></i><span>Sites</span></a>
-                <a href="#" data-section="files" onclick="showSection('files')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="folder-open" class="w-5 h-5"></i><span>Files</span></a>
-                <a href="#" data-section="calendars" onclick="showSection('calendars')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i><span>Calendars</span></a>
-                <a href="#" data-section="audit" onclick="showSection('audit')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="file-text" class="w-5 h-5"></i><span>Audit Logs</span></a>
-                <a href="#" data-section="metrics" onclick="showSection('metrics')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="bar-chart-2" class="w-5 h-5"></i><span>Metrics</span></a>
-                <a href="#" data-section="allowlist" onclick="showSection('allowlist')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="users" class="w-5 h-5"></i><span>Allowlist</span></a>
-                <a href="#" data-section="memories" onclick="showSection('memories')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="brain" class="w-5 h-5"></i><span>Memories (RAG)</span></a>
-                <a href="#" data-section="settings" onclick="showSection('settings')" class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i data-lucide="settings" class="w-5 h-5"></i><span>Settings</span></a>
+                <a href="#" data-section="cubicles" onclick="showSection('cubicles')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="box" class="w-5 h-5"></i><span>Cubicles</span></a>
+                <a href="#" data-section="sites" onclick="showSection('sites')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="globe" class="w-5 h-5"></i><span>Sites</span></a>
+                <a href="#" data-section="files" onclick="showSection('files')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="folder-open" class="w-5 h-5"></i><span>Files</span></a>
+                <a href="#" data-section="calendars" onclick="showSection('calendars')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="calendar-days" class="w-5 h-5"></i><span>Calendars</span></a>
+                <a href="#" data-section="audit" onclick="showSection('audit')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="file-text" class="w-5 h-5"></i><span>Audit Logs</span></a>
+                <a href="#" data-section="metrics" onclick="showSection('metrics')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="bar-chart-2" class="w-5 h-5"></i><span>Metrics</span></a>
+                <a href="#" data-section="allowlist" onclick="showSection('allowlist')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="users" class="w-5 h-5"></i><span>Allowlist</span></a>
+                <a href="#" data-section="memories" onclick="showSection('memories')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="brain" class="w-5 h-5"></i><span>Memories (RAG)</span></a>
+                <a href="#" data-section="settings" onclick="showSection('settings')"
+                    class="nav-item flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"><i
+                        data-lucide="settings" class="w-5 h-5"></i><span>Settings</span></a>
             </nav>
 
             <div class="p-6">
-                <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors border border-slate-700/50">
+                <button onclick="logout()"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors border border-slate-700/50">
                     <i data-lucide="log-out" class="w-5 h-5"></i><span>Logout</span>
                 </button>
             </div>
         </aside>
 
         <main class="dashboard-main relative z-10 overflow-hidden">
-            <div id="default-creds-warning" class="hidden bg-red-900/40 border-b border-red-500/50 text-red-200 px-6 py-3 flex justify-between items-center text-sm shadow-md">
-                <div class="flex items-center gap-3"><div class="p-1.5 bg-red-500/20 rounded-lg"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i></div><span><strong>SECURITY WARNING:</strong> You are using default admin credentials. Please change your password in Settings.</span></div>
-                <button onclick="showSection('settings')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-lg shadow-red-500/20 flex items-center gap-2">Change Password <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+            <div id="default-creds-warning"
+                class="hidden bg-red-900/40 border-b border-red-500/50 text-red-200 px-6 py-3 flex justify-between items-center text-sm shadow-md">
+                <div class="flex items-center gap-3">
+                    <div class="p-1.5 bg-red-500/20 rounded-lg"><i data-lucide="alert-triangle"
+                            class="w-4 h-4 text-red-500"></i></div><span><strong>SECURITY WARNING:</strong> You are
+                        using default admin credentials. Please change your password in Settings.</span>
+                </div>
+                <button onclick="showSection('settings')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-lg shadow-red-500/20 flex items-center gap-2">Change
+                    Password <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
             </div>
 
             <header class="dashboard-topbar px-4 md:px-8 py-5">
@@ -385,24 +410,50 @@
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h2 class="text-2xl font-bold text-white" id="page-title">Mission Control</h2>
-                            <p class="text-xs text-slate-400 mono mt-1">SYSTEM_STATUS: <span class="text-green-400">SECURE</span></p>
+                            <p class="text-xs text-slate-400 mono mt-1">SYSTEM_STATUS: <span
+                                    class="text-green-400">SECURE</span></p>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <button onclick="syncWebhooks(event)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2" title="Reconnect bots to Telegram"><i data-lucide="refresh-cw" class="w-4 h-4"></i><span class="hidden sm:inline">Sync Bots</span></button>
-                            <button onclick="openModal()" class="bg-orange-600 hover:bg-orange-500 text-white px-5 py-2 rounded-lg font-bold transition-all shadow-lg shadow-orange-900/20 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i><span>Spawn Agent</span></button>
+                            <button onclick="syncWebhooks(event)"
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2"
+                                title="Reconnect bots to Telegram"><i data-lucide="refresh-cw" class="w-4 h-4"></i><span
+                                    class="hidden sm:inline">Sync Bots</span></button>
+                            <button onclick="openModal()"
+                                class="bg-orange-600 hover:bg-orange-500 text-white px-5 py-2 rounded-lg font-bold transition-all shadow-lg shadow-orange-900/20 flex items-center gap-2"><i
+                                    data-lucide="plus-circle" class="w-4 h-4"></i><span>Spawn Agent</span></button>
                         </div>
                     </div>
                     <nav class="mobile-nav">
-                        <a href="#" data-section="agents" onclick="showSection('agents')" class="nav-item bg-orange-500/10 text-orange-400 border-orange-500/20"><i data-lucide="grid" class="w-4 h-4 inline mr-1"></i>Agents</a>
-                        <a href="#" data-section="cubicles" onclick="showSection('cubicles')" class="nav-item text-slate-300"><i data-lucide="box" class="w-4 h-4 inline mr-1"></i>Cubicles</a>
-                        <a href="#" data-section="sites" onclick="showSection('sites')" class="nav-item text-slate-300"><i data-lucide="globe" class="w-4 h-4 inline mr-1"></i>Sites</a>
-                        <a href="#" data-section="files" onclick="showSection('files')" class="nav-item text-slate-300"><i data-lucide="folder-open" class="w-4 h-4 inline mr-1"></i>Files</a>
-                        <a href="#" data-section="calendars" onclick="showSection('calendars')" class="nav-item text-slate-300"><i data-lucide="calendar-days" class="w-4 h-4 inline mr-1"></i>Calendars</a>
-                        <a href="#" data-section="audit" onclick="showSection('audit')" class="nav-item text-slate-300"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>Audit</a>
-                        <a href="#" data-section="metrics" onclick="showSection('metrics')" class="nav-item text-slate-300"><i data-lucide="bar-chart-2" class="w-4 h-4 inline mr-1"></i>Metrics</a>
-                        <a href="#" data-section="allowlist" onclick="showSection('allowlist')" class="nav-item text-slate-300"><i data-lucide="users" class="w-4 h-4 inline mr-1"></i>Allowlist</a>
-                        <a href="#" data-section="memories" onclick="showSection('memories')" class="nav-item text-slate-300"><i data-lucide="brain" class="w-4 h-4 inline mr-1"></i>Memories</a>
-                        <a href="#" data-section="settings" onclick="showSection('settings')" class="nav-item text-slate-300"><i data-lucide="settings" class="w-4 h-4 inline mr-1"></i>Settings</a>
+                        <a href="#" data-section="agents" onclick="showSection('agents')"
+                            class="nav-item bg-orange-500/10 text-orange-400 border-orange-500/20"><i data-lucide="grid"
+                                class="w-4 h-4 inline mr-1"></i>Agents</a>
+                        <a href="#" data-section="cubicles" onclick="showSection('cubicles')"
+                            class="nav-item text-slate-300"><i data-lucide="box"
+                                class="w-4 h-4 inline mr-1"></i>Cubicles</a>
+                        <a href="#" data-section="sites" onclick="showSection('sites')"
+                            class="nav-item text-slate-300"><i data-lucide="globe"
+                                class="w-4 h-4 inline mr-1"></i>Sites</a>
+                        <a href="#" data-section="files" onclick="showSection('files')"
+                            class="nav-item text-slate-300"><i data-lucide="folder-open"
+                                class="w-4 h-4 inline mr-1"></i>Files</a>
+                        <a href="#" data-section="calendars" onclick="showSection('calendars')"
+                            class="nav-item text-slate-300"><i data-lucide="calendar-days"
+                                class="w-4 h-4 inline mr-1"></i>Calendars</a>
+                        <a href="#" data-section="audit" onclick="showSection('audit')"
+                            class="nav-item text-slate-300"><i data-lucide="file-text"
+                                class="w-4 h-4 inline mr-1"></i>Audit</a>
+                        <a href="#" data-section="metrics" onclick="showSection('metrics')"
+                            class="nav-item text-slate-300"><i data-lucide="bar-chart-2"
+                                class="w-4 h-4 inline mr-1"></i>Metrics</a>
+                        <a href="#" data-section="allowlist" onclick="showSection('allowlist')"
+                            class="nav-item text-slate-300"><i data-lucide="users"
+                                class="w-4 h-4 inline mr-1"></i>Allowlist</a>
+                        <a href="#" data-section="memories" onclick="showSection('memories')"
+                            class="nav-item text-slate-300"><i data-lucide="brain"
+                                class="w-4 h-4 inline mr-1"></i>Memories</a>
+                        <a href="#" data-section="settings" onclick="showSection('settings')"
+                            class="nav-item text-slate-300"><i data-lucide="settings"
+                                class="w-4 h-4 inline mr-1"></i>Settings</a>
                     </nav>
                 </div>
             </header>
@@ -410,621 +461,719 @@
             <div class="dashboard-content">
                 <div class="dashboard-content-inner">
 
-                <!-- Agents Section -->
-                <div id="section-agents">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="cpu"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">DOCKER</span>
-                            </div>
-                            <div class="text-2xl font-bold text-white" id="stat-containers">0</div>
-                            <div class="text-xs text-slate-400 mt-1">Active Cubicles</div>
-                        </div>
-
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="bot"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">AGENTS</span>
-                            </div>
-                            <div class="text-2xl font-bold text-white" id="stat-agents">0</div>
-                            <div class="text-xs text-slate-400 mt-1">Registered Identities</div>
-                        </div>
-
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="dollar-sign"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">SPEND (24H)</span>
-                            </div>
-                            <div class="text-2xl font-bold text-white" id="stat-spend">$0.00</div>
-                            <div class="text-xs text-slate-400 mt-1">Total Compute Cost</div>
-                        </div>
-
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="shield"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">SECURITY</span>
-                            </div>
-                            <div class="text-xl font-bold text-white">Secure</div>
-                            <div class="text-xs text-slate-400 mt-1">Containers Isolated</div>
-                        </div>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <i data-lucide="grid" class="w-5 h-5 text-orange-500"></i>
-                        Deployed Agents
-                    </h3>
-
-                    <div id="agent-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-
-                    <div class="glass-card p-5 rounded-2xl mt-8">
-                        <div class="flex items-center justify-between gap-3 mb-3">
-                            <h4 class="text-white font-bold">Agent Logs</h4>
-                            <span class="text-xs text-slate-400">Runtime log stream across all agents.</span>
-                        </div>
-                        <button onclick="loadRuntimeLogs()"
-                            class="bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg text-sm">Refresh
-                            Agent Logs</button>
-                        <div id="chat-output"
-                            class="mt-3 text-sm text-slate-300 whitespace-pre-wrap bg-slate-900/60 border border-slate-700 rounded-lg p-3 min-h-[72px]">
-                            No runtime logs yet.</div>
-                    </div>
-                </div>
-
-                <!-- Cubicles Section -->
-                <div id="section-cubicles" class="hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="box" class="w-5 h-5 text-orange-500"></i>
-                            Running Cubicles
-                        </h3>
-                        <button onclick="loadCubicles()"
-                            class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 border border-slate-700">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            Refresh
-                        </button>
-                    </div>
-
-                    <div class="glass-card rounded-2xl overflow-hidden">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-800/50 text-slate-400">
-                                <tr>
-                                    <th class="px-4 py-3 text-left font-mono">CONTAINER ID</th>
-                                    <th class="px-4 py-3 text-left font-mono">IMAGE</th>
-                                    <th class="px-4 py-3 text-left font-mono">STATUS</th>
-                                    <th class="px-4 py-3 text-left font-mono">CREATED</th>
-                                    <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cubicles-tbody" class="divide-y divide-slate-800">
-                            </tbody>
-                        </table>
-                        <div id="cubicles-empty" class="p-8 text-center text-slate-500 hidden">
-                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-slate-600"></i>
-                            <p>No running cubicles. Spawn an agent to create a cubicle.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sites Section -->
-                <div id="section-sites" class="hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="globe" class="w-5 h-5 text-orange-500"></i>
-                            Sites (Workspace Web Apps)
-                        </h3>
-                        <button onclick="loadSites()"
-                            class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 border border-slate-700">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            Refresh
-                        </button>
-                    </div>
-                    <div class="glass-card p-5 rounded-2xl mb-5 text-sm text-slate-300">
-                        <p class="mb-2">HermitShell scans each workspace <span class="mono text-orange-300">www/</span> folder and lists detected web apps with tunnel preview URLs.</p>
-                        <p class="text-xs text-slate-400">Each preview can be password-protected. Use the controls below to reveal or regenerate the current password.</p>
-                    </div>
-                    <div id="sites-grid" class="glass-card p-4 rounded-2xl"></div>
-                </div>
-
-                <!-- Files Section -->
-                <div id="section-files" class="hidden">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <i data-lucide="folder-open" class="w-5 h-5 text-orange-500"></i>
-                        Files & Workspace Browser
-                    </h3>
-                    <div class="glass-card p-5 rounded-2xl mb-5">
-                        <div class="grid md:grid-cols-5 gap-3">
-                            <select id="files-agent"
-                                class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
-                            <select id="files-user"
-                                class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
-                            <button onclick="loadWorkspaceFiles()"
-                                class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold">Load
-                                Workspace</button>
-                            <button onclick="downloadWorkspaceArchive()"
-                                class="bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg">Download
-                                .tar.gz</button>
-                            <input type="file" id="workspace-upload"
-                                class="text-xs text-slate-300 bg-slate-900/50 border border-slate-700 rounded-lg p-2"
-                                onchange="uploadWorkspaceFile(event)">
-                        </div>
-                        <p class="text-xs text-slate-400 mt-3">This makes it easier to review what an agent created
-                            before forwarding outputs in Telegram.</p>
-                    </div>
-                    <div id="files-browser" class="glass-card rounded-2xl p-5 text-sm text-slate-300">
-                        Select an agent and user, then click <strong>Load Workspace</strong>.
-                    </div>
-                </div>
-
-                <!-- Calendars Section -->
-                <div id="section-calendars" class="hidden">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="calendar-days" class="w-5 h-5 text-orange-500"></i>
-                            Agent Calendars
-                        </h3>
-                        <div class="flex items-center gap-2">
-                            <button onclick="shiftCalendarMonth(-1)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg border border-slate-700 text-sm">
-                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                            </button>
-                            <div id="calendar-month-label" class="text-sm text-slate-300 min-w-[150px] text-center">Month</div>
-                            <button onclick="shiftCalendarMonth(1)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg border border-slate-700 text-sm">
-                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="loadCalendarsSection()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 border border-slate-700"><i data-lucide="refresh-cw" class="w-4 h-4"></i>Refresh</button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
-                        <div class="xl:col-span-2 glass-card p-4 rounded-2xl">
-                            <div class="grid grid-cols-7 gap-2 text-xs text-slate-400 mb-2 font-mono text-center">
-                                <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-                            </div>
-                            <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
-                        </div>
-
-                        <div class="glass-card p-4 rounded-2xl">
-                            <h4 class="text-sm font-bold text-white mb-3">Create Event</h4>
-                            <div class="space-y-3">
-                                <select id="calendar-agent" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" onchange="loadCalendarEvents()"></select>
-                                <select id="calendar-user" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"></select>
-                                <input id="calendar-title" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Event title">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input id="calendar-color" type="color" class="w-full h-11 bg-slate-800 border border-slate-700 rounded-lg p-1">
-                                    <select id="calendar-symbol" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"></select>
+                    <!-- Agents Section -->
+                    <div id="section-agents">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="cpu"
+                                            class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">DOCKER</span>
                                 </div>
-                                <input id="calendar-start" type="datetime-local" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
-                                <input id="calendar-end" type="datetime-local" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
-                                <textarea id="calendar-prompt" rows="4" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Prompt/event instructions for the agent..."></textarea>
-                                <button onclick="createCalendarEvent()" class="w-full bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold">Add Event</button>
+                                <div class="text-2xl font-bold text-white" id="stat-containers">0</div>
+                                <div class="text-xs text-slate-400 mt-1">Active Cubicles</div>
                             </div>
-                            <p class="text-xs text-slate-400 mt-3">Events run automatically and notify Telegram on start + completion.</p>
-                        </div>
-                    </div>
 
-                    <div>
-                        <h4 id="calendar-selected-date" class="text-sm font-bold text-white mb-3">Selected day events</h4>
-                        <div id="calendar-events" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
-                    </div>
-                </div>
-
-                <!-- Audit Logs Section -->
-                <div id="section-audit" class="hidden">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-5 h-5 text-orange-500"></i>
-                        Audit Logs
-                    </h3>
-
-                    <div class="glass-card rounded-2xl overflow-hidden">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-800/50 text-slate-400">
-                                <tr>
-                                    <th class="px-4 py-3 text-left font-mono">TIMESTAMP</th>
-                                    <th class="px-4 py-3 text-left font-mono">AGENT</th>
-                                    <th class="px-4 py-3 text-left font-mono">COMMAND</th>
-                                    <th class="px-4 py-3 text-left font-mono">STATUS</th>
-                                    <th class="px-4 py-3 text-left font-mono">OUTPUT</th>
-                                    <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="audit-tbody" class="divide-y divide-slate-800">
-                            </tbody>
-                        </table>
-                        <div id="audit-empty" class="p-8 text-center text-slate-500 hidden">
-                            No audit logs yet. Commands requiring approval will appear here.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Metrics Section -->
-                <div id="section-metrics" class="hidden">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-orange-500"></i>
-                        System Metrics
-                    </h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="server"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">DOCKER</span>
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="bot"
+                                            class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">AGENTS</span>
+                                </div>
+                                <div class="text-2xl font-bold text-white" id="stat-agents">0</div>
+                                <div class="text-xs text-slate-400 mt-1">Registered Identities</div>
                             </div>
-                            <div class="text-2xl font-bold text-white" id="metric-containers">0</div>
-                            <div class="text-xs text-slate-400 mt-1">Running Containers</div>
-                        </div>
 
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="bot"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">AGENTS</span>
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i
+                                            data-lucide="dollar-sign" class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">SPEND (24H)</span>
+                                </div>
+                                <div class="text-2xl font-bold text-white" id="stat-spend">$0.00</div>
+                                <div class="text-xs text-slate-400 mt-1">Total Compute Cost</div>
                             </div>
-                            <div class="text-2xl font-bold text-white" id="metric-agents">0</div>
-                            <div class="text-xs text-slate-400 mt-1">Total Agents</div>
-                        </div>
 
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i
-                                        data-lucide="dollar-sign" class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">SPEND</span>
-                            </div>
-                            <div class="text-2xl font-bold text-white" id="metric-spend">$0.00</div>
-                            <div class="text-xs text-slate-400 mt-1">Today's Spend</div>
-                        </div>
-
-                        <div class="glass-card p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="shield"
-                                        class="w-5 h-5"></i></div>
-                                <span class="text-xs font-mono text-slate-500">ALLOWLIST</span>
-                            </div>
-                            <div class="text-2xl font-bold text-white" id="metric-allowlist">0</div>
-                            <div class="text-xs text-slate-400 mt-1">Allowed Users</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="glass-card p-4 rounded-xl">
-                            <div class="text-xs text-slate-400">Audit Approved</div>
-                            <div id="metric-audit-approved" class="text-xl font-bold text-green-400">0</div>
-                        </div>
-                        <div class="glass-card p-4 rounded-xl">
-                            <div class="text-xs text-slate-400">Audit Pending</div>
-                            <div id="metric-audit-pending" class="text-xl font-bold text-yellow-400">0</div>
-                        </div>
-                        <div class="glass-card p-4 rounded-xl">
-                            <div class="text-xs text-slate-400">Runtime Errors</div>
-                            <div id="metric-runtime-errors" class="text-xl font-bold text-red-400">0</div>
-                        </div>
-                    </div>
-
-                    <div class="glass-card p-6 rounded-2xl">
-                        <h4 class="text-white font-bold mb-4">API Keys Status</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="flex items-center justify-between bg-slate-800 p-4 rounded-lg">
-                                <span class="text-slate-300">OpenAI API Key</span>
-                                <span id="metric-openai"
-                                    class="text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400">Not
-                                    Set</span>
-                            </div>
-                            <div class="flex items-center justify-between bg-slate-800 p-4 rounded-lg">
-                                <span class="text-slate-300">OpenRouter API Key</span>
-                                <span id="metric-openrouter"
-                                    class="text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400">Not
-                                    Set</span>
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="shield"
+                                            class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">SECURITY</span>
+                                </div>
+                                <div class="text-xl font-bold text-white">Secure</div>
+                                <div class="text-xs text-slate-400 mt-1">Containers Isolated</div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Allowlist Section -->
-                <div id="section-allowlist" class="hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="users" class="w-5 h-5 text-orange-500"></i>
-                            User Allowlist
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <i data-lucide="grid" class="w-5 h-5 text-orange-500"></i>
+                            Deployed Agents
                         </h3>
-                        <button onclick="openAllowlistModal()"
-                            class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-bold transition-all text-sm flex items-center gap-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            Add User
-                        </button>
-                    </div>
 
-                    <div class="glass-card rounded-2xl overflow-hidden">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-800/50 text-slate-400">
-                                <tr>
-                                    <th class="px-4 py-3 text-left font-mono">USER ID</th>
-                                    <th class="px-4 py-3 text-left font-mono">USERNAME</th>
-                                    <th class="px-4 py-3 text-left font-mono">FIRST NAME</th>
-                                    <th class="px-4 py-3 text-left font-mono">ADDED</th>
-                                    <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allowlist-tbody" class="divide-y divide-slate-800">
-                            </tbody>
-                        </table>
-                        <div id="allowlist-empty" class="p-8 text-center text-slate-500 hidden">
-                            No users in allowlist yet. Add users to control who can access your agents.
+                        <div id="agent-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+
+                        <div class="glass-card p-5 rounded-2xl mt-8">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <h4 class="text-white font-bold">Agent Logs</h4>
+                                <span class="text-xs text-slate-400">Runtime log stream across all agents.</span>
+                            </div>
+                            <button onclick="loadRuntimeLogs()"
+                                class="bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg text-sm">Refresh
+                                Agent Logs</button>
+                            <div id="chat-output"
+                                class="mt-3 text-sm text-slate-300 whitespace-pre-wrap bg-slate-900/60 border border-slate-700 rounded-lg p-3 min-h-[72px]">
+                                No runtime logs yet.</div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Memories Section -->
-                <div id="section-memories" class="hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="brain" class="w-5 h-5 text-orange-500"></i>
-                            Agent Memories
-                        </h3>
-                    </div>
-                    <div class="glass-card p-5 rounded-2xl mb-5 text-sm text-slate-300">
-                        <p>Store persistent facts, rules, and preferences for your agents here. When a user interacts
-                            with an agent, relevant memories will be automatically injected into the system prompt.</p>
-                    </div>
-
-                    <div class="glass-card p-6 rounded-2xl mb-6">
-                        <div class="flex items-center gap-3 w-full mb-4">
-                            <label class="text-sm font-bold text-slate-300">Select Agent:</label>
-                            <select id="memory-agent-select"
-                                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-white"
-                                onchange="loadAgentMemories()">
-                                <option value="">Select an agent...</option>
-                            </select>
-                        </div>
-
-                        <div class="w-full flex gap-3 mb-6">
-                            <input type="text" id="new-memory-input"
-                                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
-                                placeholder="Enter a new fact or rule...">
-                            <button onclick="addAgentMemory()"
-                                class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
-                                <i data-lucide="plus" class="w-4 h-4"></i> Add Memory
+                    <!-- Cubicles Section -->
+                    <div id="section-cubicles" class="hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <i data-lucide="box" class="w-5 h-5 text-orange-500"></i>
+                                Running Cubicles
+                            </h3>
+                            <button onclick="loadCubicles()"
+                                class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 border border-slate-700">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                Refresh
                             </button>
                         </div>
 
-                        <div class="rounded-xl overflow-hidden border border-slate-700">
+                        <div class="glass-card rounded-2xl overflow-hidden">
                             <table class="w-full text-sm">
-                                <thead class="bg-slate-800/80 text-slate-400">
+                                <thead class="bg-slate-800/50 text-slate-400">
                                     <tr>
-                                        <th class="px-4 py-3 text-left font-mono">MEMORY THOUGHT (FACT/RULE)</th>
-                                        <th class="px-4 py-3 text-right font-mono">ACTIONS</th>
+                                        <th class="px-4 py-3 text-left font-mono">CONTAINER ID</th>
+                                        <th class="px-4 py-3 text-left font-mono">IMAGE</th>
+                                        <th class="px-4 py-3 text-left font-mono">STATUS</th>
+                                        <th class="px-4 py-3 text-left font-mono">CREATED</th>
+                                        <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
                                     </tr>
                                 </thead>
-                                <tbody id="memories-tbody" class="divide-y divide-slate-800/80">
+                                <tbody id="cubicles-tbody" class="divide-y divide-slate-800">
                                 </tbody>
                             </table>
-                            <div id="memories-empty" class="p-8 text-center text-slate-500 hidden">
-                                <i data-lucide="brain" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
-                                No memories stored for this agent yet.
+                            <div id="cubicles-empty" class="p-8 text-center text-slate-500 hidden">
+                                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-slate-600"></i>
+                                <p>No running cubicles. Spawn an agent to create a cubicle.</p>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Settings Section -->
-                <div id="section-settings" class="hidden">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <i data-lucide="settings" class="w-5 h-5 text-orange-500"></i>
-                        Settings
-                    </h3>
-
-                    <!-- Admin Credentials Settings -->
-                    <div class="glass-card p-6 rounded-2xl mb-6" id="admin-creds-card">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="p-2 bg-red-500/10 rounded-lg text-red-500"><i data-lucide="shield-alert"
-                                    class="w-5 h-5"></i></div>
-                            <h4 class="text-lg font-bold text-white">Admin Credentials</h4>
+                    <!-- Sites Section -->
+                    <div id="section-sites" class="hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <i data-lucide="globe" class="w-5 h-5 text-orange-500"></i>
+                                Sites (Workspace Web Apps)
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="captureSiteScreenshot()"
+                                    class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2">
+                                    <i data-lucide="camera" class="w-4 h-4"></i>
+                                    Capture Screenshot
+                                </button>
+                                <button onclick="loadSites()"
+                                    class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 border border-slate-700">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    Refresh
+                                </button>
+                            </div>
                         </div>
-                        <div id="settings-creds-warning"
-                            class="hidden bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
-                            <p class="text-sm text-red-300 flex items-center gap-2">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                <strong>Action Required:</strong> You are using default credentials. Please change your
-                                username and password immediately.
+                        <div class="glass-card p-5 rounded-2xl mb-5 text-sm text-slate-300">
+                            <p class="mb-2">HermitShell scans each workspace <span
+                                    class="mono text-orange-300">www/</span> folder and lists detected web apps. Each subfolder in www/ is treated as a separate web app.</p>
+                            <p class="text-xs text-slate-400">Web apps are created with vanilla HTML/CSS/JS. Click "View" to open a modal with the site, or "Share" to generate a temporary tunnel link for Telegram.</p>
+                        </div>
+                        <div id="sites-grid" class="glass-card p-4 rounded-2xl"></div>
+                    </div>
+
+                    <!-- Site Preview Modal -->
+                    <div id="site-preview-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                        <div class="bg-slate-900 border border-slate-700 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                                <div class="flex items-center gap-3">
+                                    <h3 id="site-preview-title" class="text-lg font-bold text-white">Site Preview</h3>
+                                    <span id="site-preview-badge" class="text-xs px-2 py-1 rounded bg-slate-700 text-slate-300">Inactive</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="shareSiteTunnel()"
+                                        class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2">
+                                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                                        Share Link
+                                    </button>
+                                    <button onclick="closeSitePreview()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                                </div>
+                            </div>
+                            <div class="flex-1 flex overflow-hidden">
+                                <div class="w-64 border-r border-slate-700 bg-slate-800/30 p-4 overflow-y-auto">
+                                    <h4 class="text-sm font-bold text-slate-300 mb-3">Web Apps</h4>
+                                    <div id="site-apps-list" class="space-y-2"></div>
+                                </div>
+                                <div class="flex-1 bg-white">
+                                    <iframe id="site-preview-frame" class="w-full h-full" src=""></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Files Section -->
+                    <div id="section-files" class="hidden">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <i data-lucide="folder-open" class="w-5 h-5 text-orange-500"></i>
+                            Files & Workspace Browser
+                        </h3>
+                        <div class="glass-card p-5 rounded-2xl mb-5">
+                            <div class="grid md:grid-cols-5 gap-3">
+                                <select id="files-agent"
+                                    class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
+                                <select id="files-user"
+                                    class="bg-slate-800 border border-slate-700 rounded-lg p-3 text-white"></select>
+                                <button onclick="loadWorkspaceFiles()"
+                                    class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold">Load
+                                    Workspace</button>
+                                <button onclick="downloadWorkspaceArchive()"
+                                    class="bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg">Download
+                                    .tar.gz</button>
+                                <input type="file" id="workspace-upload"
+                                    class="text-xs text-slate-300 bg-slate-900/50 border border-slate-700 rounded-lg p-2"
+                                    onchange="uploadWorkspaceFile(event)">
+                            </div>
+                            <p class="text-xs text-slate-400 mt-3">This makes it easier to review what an agent created
+                                before forwarding outputs in Telegram.</p>
+                        </div>
+                        <div id="files-browser" class="glass-card rounded-2xl p-5 text-sm text-slate-300">
+                            Select an agent and user, then click <strong>Load Workspace</strong>.
+                        </div>
+                    </div>
+
+                    <!-- Calendars Section -->
+                    <div id="section-calendars" class="hidden">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <i data-lucide="calendar-days" class="w-5 h-5 text-orange-500"></i>
+                                Agent Calendars
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="shiftCalendarMonth(-1)"
+                                    class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg border border-slate-700 text-sm">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </button>
+                                <div id="calendar-month-label" class="text-sm text-slate-300 min-w-[150px] text-center">
+                                    Month</div>
+                                <button onclick="shiftCalendarMonth(1)"
+                                    class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg border border-slate-700 text-sm">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="loadCalendarsSection()"
+                                    class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 border border-slate-700"><i
+                                        data-lucide="refresh-cw" class="w-4 h-4"></i>Refresh</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+                            <div class="xl:col-span-2 glass-card p-4 rounded-2xl">
+                                <div class="grid grid-cols-7 gap-2 text-xs text-slate-400 mb-2 font-mono text-center">
+                                    <div>SUN</div>
+                                    <div>MON</div>
+                                    <div>TUE</div>
+                                    <div>WED</div>
+                                    <div>THU</div>
+                                    <div>FRI</div>
+                                    <div>SAT</div>
+                                </div>
+                                <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
+                            </div>
+
+                            <div class="glass-card p-4 rounded-2xl">
+                                <h4 class="text-sm font-bold text-white mb-3">Create Event</h4>
+                                <div class="space-y-3">
+                                    <select id="calendar-agent"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"
+                                        onchange="loadCalendarEvents()"></select>
+                                    <select id="calendar-user"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"></select>
+                                    <input id="calendar-title"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"
+                                        placeholder="Event title">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input id="calendar-color" type="color"
+                                            class="w-full h-11 bg-slate-800 border border-slate-700 rounded-lg p-1">
+                                        <select id="calendar-symbol"
+                                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"></select>
+                                    </div>
+                                    <input id="calendar-start" type="datetime-local"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
+                                    <input id="calendar-end" type="datetime-local"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
+                                    <textarea id="calendar-prompt" rows="4"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white"
+                                        placeholder="Prompt/event instructions for the agent..."></textarea>
+                                    <button onclick="createCalendarEvent()"
+                                        class="w-full bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold">Add
+                                        Event</button>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-3">Events run automatically and notify Telegram on
+                                    start + completion.</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 id="calendar-selected-date" class="text-sm font-bold text-white mb-3">Selected day
+                                events</h4>
+                            <div id="calendar-events" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Logs Section -->
+                    <div id="section-audit" class="hidden">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-5 h-5 text-orange-500"></i>
+                            Audit Logs
+                        </h3>
+
+                        <div class="glass-card p-4 rounded-2xl mb-4">
+                            <div class="flex flex-wrap gap-3">
+                                <select id="audit-agent-filter" onchange="loadAuditLogs()" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-sm">
+                                    <option value="">All Agents</option>
+                                </select>
+                                <select id="audit-status-filter" onchange="loadAuditLogs()" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-sm">
+                                    <option value="">All Status</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="denied">Denied</option>
+                                    <option value="error">Error</option>
+                                </select>
+                                <input type="text" id="audit-search" oninput="loadAuditLogs()" placeholder="Search commands..." class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-sm flex-1">
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-2xl overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-800/50 text-slate-400">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-mono">TIMESTAMP</th>
+                                        <th class="px-4 py-3 text-left font-mono">AGENT</th>
+                                        <th class="px-4 py-3 text-left font-mono">ACTION TYPE</th>
+                                        <th class="px-4 py-3 text-left font-mono">COMMAND</th>
+                                        <th class="px-4 py-3 text-left font-mono">STATUS</th>
+                                        <th class="px-4 py-3 text-left font-mono">RESPONSE</th>
+                                        <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="audit-tbody" class="divide-y divide-slate-800">
+                                </tbody>
+                            </table>
+                            <div id="audit-empty" class="p-8 text-center text-slate-500 hidden">
+                                No audit logs yet. Commands requiring approval will appear here.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Section -->
+                    <div id="section-metrics" class="hidden">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <i data-lucide="bar-chart-2" class="w-5 h-5 text-orange-500"></i>
+                            System Metrics
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="server"
+                                            class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">DOCKER</span>
+                                </div>
+                                <div class="text-2xl font-bold text-white" id="metric-containers">0</div>
+                                <div class="text-xs text-slate-400 mt-1">Running Containers</div>
+                            </div>
+
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="bot"
+                                            class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">AGENTS</span>
+                                </div>
+                                <div class="text-2xl font-bold text-white" id="metric-agents">0</div>
+                                <div class="text-xs text-slate-400 mt-1">Total Agents</div>
+                            </div>
+
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i
+                                            data-lucide="dollar-sign" class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">SPEND</span>
+                                </div>
+                                <div class="text-2xl font-bold text-white" id="metric-spend">$0.00</div>
+                                <div class="text-xs text-slate-400 mt-1">Today's Spend</div>
+                            </div>
+
+                            <div class="glass-card p-5 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="shield"
+                                            class="w-5 h-5"></i></div>
+                                    <span class="text-xs font-mono text-slate-500">ALLOWLIST</span>
+                                </div>
+                                <div class="text-2xl font-bold text-white" id="metric-allowlist">0</div>
+                                <div class="text-xs text-slate-400 mt-1">Allowed Users</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="glass-card p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">Audit Approved</div>
+                                <div id="metric-audit-approved" class="text-xl font-bold text-green-400">0</div>
+                            </div>
+                            <div class="glass-card p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">Audit Pending</div>
+                                <div id="metric-audit-pending" class="text-xl font-bold text-yellow-400">0</div>
+                            </div>
+                            <div class="glass-card p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">Runtime Errors</div>
+                                <div id="metric-runtime-errors" class="text-xl font-bold text-red-400">0</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-2xl">
+                            <h4 class="text-white font-bold mb-4">API Keys Status</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex items-center justify-between bg-slate-800 p-4 rounded-lg">
+                                    <span class="text-slate-300">OpenAI API Key</span>
+                                    <span id="metric-openai"
+                                        class="text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400">Not
+                                        Set</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-slate-800 p-4 rounded-lg">
+                                    <span class="text-slate-300">OpenRouter API Key</span>
+                                    <span id="metric-openrouter"
+                                        class="text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400">Not
+                                        Set</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Allowlist Section -->
+                    <div id="section-allowlist" class="hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <i data-lucide="users" class="w-5 h-5 text-orange-500"></i>
+                                User Allowlist
+                            </h3>
+                            <button onclick="openAllowlistModal()"
+                                class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-bold transition-all text-sm flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Add User
+                            </button>
+                        </div>
+
+                        <div class="glass-card rounded-2xl overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-800/50 text-slate-400">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-mono">USER ID</th>
+                                        <th class="px-4 py-3 text-left font-mono">USERNAME</th>
+                                        <th class="px-4 py-3 text-left font-mono">FIRST NAME</th>
+                                        <th class="px-4 py-3 text-left font-mono">ADDED</th>
+                                        <th class="px-4 py-3 text-left font-mono">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allowlist-tbody" class="divide-y divide-slate-800">
+                                </tbody>
+                            </table>
+                            <div id="allowlist-empty" class="p-8 text-center text-slate-500 hidden">
+                                No users in allowlist yet. Add users to control who can access your agents.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memories Section -->
+                    <div id="section-memories" class="hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <i data-lucide="brain" class="w-5 h-5 text-orange-500"></i>
+                                Agent Memories
+                            </h3>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl mb-5 text-sm text-slate-300">
+                            <p>Store persistent facts, rules, and preferences for your agents here. When a user
+                                interacts
+                                with an agent, relevant memories will be automatically injected into the system prompt.
                             </p>
                         </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-mono text-slate-400 mb-2">NEW USERNAME</label>
-                                <input type="text" id="setting-admin-username"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="Enter new username">
+
+                        <div class="glass-card p-6 rounded-2xl mb-6">
+                            <div class="flex items-center gap-3 w-full mb-4">
+                                <label class="text-sm font-bold text-slate-300">Select Agent:</label>
+                                <select id="memory-agent-select"
+                                    class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-white"
+                                    onchange="loadAgentMemories()">
+                                    <option value="">Select an agent...</option>
+                                </select>
+                                <label class="text-sm font-bold text-slate-300">User:</label>
+                                <select id="memory-user-select"
+                                    class="w-40 bg-slate-800 border border-slate-700 rounded-lg p-2 text-white"
+                                    onchange="loadAgentMemories()">
+                                    <option value="0">User 0</option>
+                                </select>
                             </div>
-                            <div>
-                                <label class="block text-xs font-mono text-slate-400 mb-2">NEW PASSWORD</label>
-                                <input type="password" id="setting-admin-password"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="Enter new password">
+
+                            <div class="w-full flex flex-wrap gap-3 mb-6">
+                                <input type="text" id="new-memory-input"
+                                    class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 outline-none min-w-[300px]"
+                                    placeholder="Enter a new fact or rule...">
+                                <div class="flex gap-2">
+                                    <button onclick="addAgentMemory()"
+                                        class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap">
+                                        <i data-lucide="plus" class="w-4 h-4"></i> Add Memory
+                                    </button>
+                                    <button onclick="clearAgentMemories()"
+                                        class="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i> Clear All
+                                    </button>
+                                </div>
                             </div>
-                            <button onclick="changeAdminCredentials()"
-                                class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-all text-sm flex items-center gap-2 shadow-lg shadow-red-900/20">
-                                <i data-lucide="save" class="w-4 h-4"></i> Update Credentials
+
+                            <div class="rounded-xl overflow-hidden border border-slate-700">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-slate-800/80 text-slate-400">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left font-mono">MEMORY THOUGHT (FACT/RULE)</th>
+                                            <th class="px-4 py-3 text-right font-mono">ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="memories-tbody" class="divide-y divide-slate-800/80">
+                                    </tbody>
+                                </table>
+                                <div id="memories-empty" class="p-8 text-center text-slate-500 hidden">
+                                    <i data-lucide="brain" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                                    No memories stored for this agent yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div id="section-settings" class="hidden">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <i data-lucide="settings" class="w-5 h-5 text-orange-500"></i>
+                            Settings
+                        </h3>
+
+                        <!-- Admin Credentials Settings -->
+                        <div class="glass-card p-6 rounded-2xl mb-6" id="admin-creds-card">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-2 bg-red-500/10 rounded-lg text-red-500"><i data-lucide="shield-alert"
+                                        class="w-5 h-5"></i></div>
+                                <h4 class="text-lg font-bold text-white">Admin Credentials</h4>
+                            </div>
+                            <div id="settings-creds-warning"
+                                class="hidden bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
+                                <p class="text-sm text-red-300 flex items-center gap-2">
+                                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                    <strong>Action Required:</strong> You are using default credentials. Please change
+                                    your
+                                    username and password immediately.
+                                </p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">NEW USERNAME</label>
+                                    <input type="text" id="setting-admin-username"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="Enter new username">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">NEW PASSWORD</label>
+                                    <input type="password" id="setting-admin-password"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="Enter new password">
+                                </div>
+                                <button onclick="changeAdminCredentials()"
+                                    class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-all text-sm flex items-center gap-2 shadow-lg shadow-red-900/20">
+                                    <i data-lucide="save" class="w-4 h-4"></i> Update Credentials
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Operator Settings -->
+                        <div class="glass-card p-6 rounded-2xl mb-6">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="shield"
+                                        class="w-5 h-5"></i></div>
+                                <h4 class="text-lg font-bold text-white">Operator (Primary Admin)</h4>
+                            </div>
+                            <div class="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 mb-4">
+                                <p class="text-xs text-orange-300">The Operator receives all verification codes, HITL
+                                    approval requests, and delegation requests. Set this to your Telegram User ID.</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <label class="text-xs font-mono text-slate-400">OPERATOR TELEGRAM ID</label>
+                                        <button
+                                            onclick="alert('Send /start to @userinfobot on Telegram to get your User ID')"
+                                            class="text-slate-400 hover:text-orange-500 transition-colors"
+                                            title="How to find my ID?">
+                                            <i data-lucide="help-circle" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                    <input type="text" id="setting-operator_telegram_id"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="e.g., 123456789">
+                                    <p class="text-xs text-slate-500 mt-1">Required for agent verification and HITL
+                                        approvals</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- General Settings -->
+                        <div class="glass-card p-6 rounded-2xl mb-6">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="globe"
+                                        class="w-5 h-5"></i></div>
+                                <h4 class="text-lg font-bold text-white">General</h4>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <label class="text-xs font-mono text-slate-400">PUBLIC_URL</label>
+                                        <button onclick="openPublicUrlGuide()"
+                                            class="text-slate-400 hover:text-orange-500 transition-colors"
+                                            title="Why do I need this?">
+                                            <i data-lucide="help-circle" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                    <input type="url" id="setting-public_url"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="https://your-domain.com">
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="setting-hitl_enabled"
+                                        class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-orange-500 focus:ring-orange-500">
+                                    <label for="setting-hitl_enabled" class="text-sm text-slate-300">Enable
+                                        Human-in-the-Loop (HITL) by default</label>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">DEFAULT_DAILY_LIMIT
+                                        (USD)</label>
+                                    <input type="number" step="0.01" id="setting-default_daily_limit"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="1.00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LLM Provider Settings -->
+                        <div class="glass-card p-6 rounded-2xl mb-6">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="cpu"
+                                        class="w-5 h-5"></i></div>
+                                <h4 class="text-lg font-bold text-white">LLM Provider</h4>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">PROVIDER</label>
+                                    <select id="setting-default_provider" onchange="updateModelOptions()"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors">
+                                        <option value="openrouter">OpenRouter (Multi-provider)</option>
+                                        <option value="openai">OpenAI</option>
+                                        <option value="anthropic">Anthropic (Claude)</option>
+                                        <option value="google">Google (Gemini)</option>
+                                        <option value="groq">Groq (Fast Inference)</option>
+                                        <option value="mistral">Mistral AI</option>
+                                        <option value="deepseek">DeepSeek</option>
+                                        <option value="xai">xAI (Grok)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">MODEL</label>
+                                    <select id="setting-default_model"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors">
+                                    </select>
+                                    <input type="text" id="setting-custom_model"
+                                        class="hidden w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors mt-2"
+                                        placeholder="Enter custom model name...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- API Keys -->
+                        <div class="glass-card p-6 rounded-2xl mb-6">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="key"
+                                        class="w-5 h-5"></i></div>
+                                <h4 class="text-lg font-bold text-white">API Keys</h4>
+                            </div>
+                            <p class="text-slate-400 text-sm mb-4">Keys are stored in the database. Environment
+                                variables
+                                take precedence if set.</p>
+                            <div class="space-y-4">
+                                <div class="provider-key" data-provider="openrouter">
+                                    <label
+                                        class="block text-xs font-mono text-slate-400 mb-2">OPENROUTER_API_KEY</label>
+                                    <input type="password" id="setting-openrouter_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="sk-or-...">
+                                </div>
+                                <div class="provider-key" data-provider="openai">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">OPENAI_API_KEY</label>
+                                    <input type="password" id="setting-openai_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="sk-...">
+                                </div>
+                                <div class="provider-key" data-provider="anthropic">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">ANTHROPIC_API_KEY</label>
+                                    <input type="password" id="setting-anthropic_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="sk-ant-...">
+                                </div>
+                                <div class="provider-key" data-provider="google">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">GOOGLE_API_KEY</label>
+                                    <input type="password" id="setting-google_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="AIza...">
+                                </div>
+                                <div class="provider-key" data-provider="groq">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">GROQ_API_KEY</label>
+                                    <input type="password" id="setting-groq_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="gsk_...">
+                                </div>
+                                <div class="provider-key" data-provider="mistral">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">MISTRAL_API_KEY</label>
+                                    <input type="password" id="setting-mistral_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="...">
+                                </div>
+                                <div class="provider-key" data-provider="deepseek">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">DEEPSEEK_API_KEY</label>
+                                    <input type="password" id="setting-deepseek_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="sk-...">
+                                </div>
+                                <div class="provider-key" data-provider="xai">
+                                    <label class="block text-xs font-mono text-slate-400 mb-2">XAI_API_KEY</label>
+                                    <input type="password" id="setting-xai_api_key"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
+                                        placeholder="xai-...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="flex justify-end">
+                            <button onclick="saveSettings()"
+                                class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Save All Settings
                             </button>
                         </div>
                     </div>
-
-                    <!-- Operator Settings -->
-                    <div class="glass-card p-6 rounded-2xl mb-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="shield"
-                                    class="w-5 h-5"></i></div>
-                            <h4 class="text-lg font-bold text-white">Operator (Primary Admin)</h4>
-                        </div>
-                        <div class="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 mb-4">
-                            <p class="text-xs text-orange-300">The Operator receives all verification codes, HITL
-                                approval requests, and delegation requests. Set this to your Telegram User ID.</p>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <label class="text-xs font-mono text-slate-400">OPERATOR TELEGRAM ID</label>
-                                    <button
-                                        onclick="alert('Send /start to @userinfobot on Telegram to get your User ID')"
-                                        class="text-slate-400 hover:text-orange-500 transition-colors"
-                                        title="How to find my ID?">
-                                        <i data-lucide="help-circle" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                                <input type="text" id="setting-operator_telegram_id"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="e.g., 123456789">
-                                <p class="text-xs text-slate-500 mt-1">Required for agent verification and HITL
-                                    approvals</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- General Settings -->
-                    <div class="glass-card p-6 rounded-2xl mb-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="globe"
-                                    class="w-5 h-5"></i></div>
-                            <h4 class="text-lg font-bold text-white">General</h4>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <label class="text-xs font-mono text-slate-400">PUBLIC_URL</label>
-                                    <button onclick="openPublicUrlGuide()"
-                                        class="text-slate-400 hover:text-orange-500 transition-colors"
-                                        title="Why do I need this?">
-                                        <i data-lucide="help-circle" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                                <input type="url" id="setting-public_url"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="https://your-domain.com">
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="checkbox" id="setting-hitl_enabled"
-                                    class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-orange-500 focus:ring-orange-500">
-                                <label for="setting-hitl_enabled" class="text-sm text-slate-300">Enable
-                                    Human-in-the-Loop (HITL) by default</label>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-mono text-slate-400 mb-2">DEFAULT_DAILY_LIMIT
-                                    (USD)</label>
-                                <input type="number" step="0.01" id="setting-default_daily_limit"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="1.00">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LLM Provider Settings -->
-                    <div class="glass-card p-6 rounded-2xl mb-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="cpu"
-                                    class="w-5 h-5"></i></div>
-                            <h4 class="text-lg font-bold text-white">LLM Provider</h4>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-mono text-slate-400 mb-2">PROVIDER</label>
-                                <select id="setting-default_provider" onchange="updateModelOptions()"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors">
-                                    <option value="openrouter">OpenRouter (Multi-provider)</option>
-                                    <option value="openai">OpenAI</option>
-                                    <option value="anthropic">Anthropic (Claude)</option>
-                                    <option value="google">Google (Gemini)</option>
-                                    <option value="groq">Groq (Fast Inference)</option>
-                                    <option value="mistral">Mistral AI</option>
-                                    <option value="deepseek">DeepSeek</option>
-                                    <option value="xai">xAI (Grok)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-mono text-slate-400 mb-2">MODEL</label>
-                                <select id="setting-default_model"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors">
-                                </select>
-                                <input type="text" id="setting-custom_model"
-                                    class="hidden w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors mt-2"
-                                    placeholder="Enter custom model name...">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- API Keys -->
-                    <div class="glass-card p-6 rounded-2xl mb-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="key"
-                                    class="w-5 h-5"></i></div>
-                            <h4 class="text-lg font-bold text-white">API Keys</h4>
-                        </div>
-                        <p class="text-slate-400 text-sm mb-4">Keys are stored in the database. Environment variables
-                            take precedence if set.</p>
-                        <div class="space-y-4">
-                            <div class="provider-key" data-provider="openrouter">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">OPENROUTER_API_KEY</label>
-                                <input type="password" id="setting-openrouter_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="sk-or-...">
-                            </div>
-                            <div class="provider-key" data-provider="openai">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">OPENAI_API_KEY</label>
-                                <input type="password" id="setting-openai_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="sk-...">
-                            </div>
-                            <div class="provider-key" data-provider="anthropic">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">ANTHROPIC_API_KEY</label>
-                                <input type="password" id="setting-anthropic_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="sk-ant-...">
-                            </div>
-                            <div class="provider-key" data-provider="google">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">GOOGLE_API_KEY</label>
-                                <input type="password" id="setting-google_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="AIza...">
-                            </div>
-                            <div class="provider-key" data-provider="groq">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">GROQ_API_KEY</label>
-                                <input type="password" id="setting-groq_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="gsk_...">
-                            </div>
-                            <div class="provider-key" data-provider="mistral">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">MISTRAL_API_KEY</label>
-                                <input type="password" id="setting-mistral_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="...">
-                            </div>
-                            <div class="provider-key" data-provider="deepseek">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">DEEPSEEK_API_KEY</label>
-                                <input type="password" id="setting-deepseek_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="sk-...">
-                            </div>
-                            <div class="provider-key" data-provider="xai">
-                                <label class="block text-xs font-mono text-slate-400 mb-2">XAI_API_KEY</label>
-                                <input type="password" id="setting-xai_api_key"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none transition-colors"
-                                    placeholder="xai-...">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Save Button -->
-                    <div class="flex justify-end">
-                        <button onclick="saveSettings()"
-                            class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2">
-                            <i data-lucide="save" class="w-4 h-4"></i>
-                            Save All Settings
-                        </button>
-                    </div>
                 </div>
-            </div>
         </main>
     </div>
 
@@ -2560,11 +2709,17 @@
                     const percent = (agent.budget.current_spend_usd / agent.budget.daily_limit_usd) * 100;
                     const color = percent > 90 ? 'bg-red-500' : 'bg-green-500';
                     const hitlBadge = agent.require_approval ? '<span class="ml-2 text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">HITL</span>' : '';
+                    
+                    const status = agent.status || 'idle';
+                    const statusDot = {
+                        'active': '<span class="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_10px_#4ade80]" title="Active"></span>',
+                        'idle': '<span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24]" title="Idle"></span>'
+                    }[status] || statusDot.idle;
 
                     const card = `
                         <div class="glass-card rounded-2xl p-5 relative group overflow-hidden space-y-4">
-                            <div class="absolute top-4 right-4">
-                                <div class="w-2.5 h-2.5 rounded-full ${agent.is_active ? 'bg-green-400 shadow-[0_0_10px_#4ade80]' : 'bg-red-400'}"></div>
+                            <div class="absolute top-4 right-4 flex items-center gap-2">
+                                ${statusDot}
                             </div>
 
                             <div class="flex items-start gap-3 pr-6">
@@ -2582,7 +2737,7 @@
                             </div>
 
                             <div>
-                                <div class="flex justify-between text-xs text-slate-400 font-mono mb-1"><span>BUDGET</span><span>$${agent.budget.current_spend_usd.toFixed(4)} / $${agent.budget.daily_limit_usd}</span></div>
+                                <div class="flex justify-between text-xs text-slate-400 font-mono mb-1"><span>BUDGET</span><span>$${agent.budget.current_spend_usd.toFixed(4)} / $${agent.budget.daily_limit_usd} <button onclick="resetBudget(${agent.id}, '${agent.name}')" class="ml-1 text-amber-400 hover:text-amber-300" title="Reset Budget"><i data-lucide="rotate-ccw" class="w-3 h-3 inline"></i></button></span></div>
                                 <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="${color} h-full" style="width: ${Math.min(percent, 100)}%"></div></div>
                             </div>
 
@@ -2678,6 +2833,120 @@
                 lucide.createIcons();
             } catch (e) {
                 grid.innerHTML = '<div class="text-red-400">Failed to load sites.</div>';
+            }
+        }
+
+        let currentSitePreview = null;
+        
+        async function openSitePreview(agentId, userId, siteName, previewUrl) {
+            const modal = document.getElementById('site-preview-modal');
+            const titleEl = document.getElementById('site-preview-title');
+            const frameEl = document.getElementById('site-preview-frame');
+            const appsListEl = document.getElementById('site-apps-list');
+            const badgeEl = document.getElementById('site-preview-badge');
+            
+            currentSitePreview = { agentId, userId, siteName, previewUrl };
+            
+            titleEl.textContent = siteName || 'Site Preview';
+            badgeEl.textContent = 'Inactive';
+            badgeEl.className = 'text-xs px-2 py-1 rounded bg-slate-700 text-slate-300';
+            
+            modal.classList.remove('hidden');
+            
+            const data = await fetch('/api/sites').then(r => r.json());
+            const site = (data.sites || []).find(s => String(s.agentId) === String(agentId) && String(s.userId) === String(userId));
+            
+            if (site && site.webApps && site.webApps.length > 0) {
+                appsListEl.innerHTML = site.webApps.map(app => `
+                    <button onclick="selectWebApp('${app.siteName}', '${app.previewUrl}')" 
+                        class="w-full text-left px-3 py-2 rounded-lg text-sm ${app.siteName === siteName ? 'bg-orange-600 text-white' : 'text-slate-300 hover:bg-slate-700'}">
+                        ${app.siteName}
+                        <div class="text-xs ${app.siteName === siteName ? 'text-orange-200' : 'text-slate-500'}">
+                            ${app.hasIndexHtml ? 'index.html' : 'No index'}
+                        </div>
+                    </button>
+                `).join('');
+            } else {
+                appsListEl.innerHTML = '<p class="text-xs text-slate-500">No web apps found</p>';
+            }
+            
+            frameEl.src = previewUrl;
+            frameEl.onload = () => {
+                badgeEl.textContent = 'Active';
+                badgeEl.className = 'text-xs px-2 py-1 rounded bg-green-600 text-white';
+            };
+        }
+        
+        function selectWebApp(siteName, previewUrl) {
+            const titleEl = document.getElementById('site-preview-title');
+            const frameEl = document.getElementById('site-preview-frame');
+            const appsListEl = document.getElementById('site-apps-list');
+            
+            titleEl.textContent = siteName;
+            frameEl.src = previewUrl;
+            
+            appsListEl.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-orange-600', 'text-white');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-700');
+            });
+            event.target.closest('button').classList.add('bg-orange-600', 'text-white');
+            event.target.closest('button').classList.remove('text-slate-300', 'hover:bg-slate-700');
+        }
+        
+        function closeSitePreview() {
+            const modal = document.getElementById('site-preview-modal');
+            const frameEl = document.getElementById('site-preview-frame');
+            frameEl.src = '';
+            modal.classList.add('hidden');
+            currentSitePreview = null;
+        }
+        
+        async function shareSiteTunnel() {
+            if (!currentSitePreview) return;
+            
+            try {
+                const res = await fetch(`/api/sites/${currentSitePreview.agentId}/${currentSitePreview.userId}/${currentSitePreview.siteName}/tunnel`, { 
+                    method: 'POST' 
+                });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    alert(data.error || 'Failed to create tunnel');
+                    return;
+                }
+                
+                await navigator.clipboard.writeText(data.tunnelUrl);
+                alert(`Tunnel link copied to clipboard!\n\nLink: ${data.tunnelUrl}\nExpires: ${new Date(data.expiresAt).toLocaleString()}`);
+            } catch (e) {
+                alert('Failed to share site: ' + e.message);
+            }
+        }
+        
+        async function captureSiteScreenshot() {
+            const selectedBtn = document.querySelector('.site-view-btn');
+            if (!selectedBtn) {
+                alert('Please click "View" on a site first to capture screenshot');
+                return;
+            }
+            
+            const agentId = selectedBtn.getAttribute('data-agent-id');
+            const userId = selectedBtn.getAttribute('data-user-id');
+            const siteName = selectedBtn.getAttribute('data-site-name') || 'default';
+            
+            try {
+                const res = await fetch(`/api/sites/${agentId}/${userId}/${siteName}/screenshot`, { 
+                    method: 'POST' 
+                });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    alert(data.error || 'Failed to capture screenshot');
+                    return;
+                }
+                
+                alert('Screenshot captured! Path: ' + data.screenshotPath);
+            } catch (e) {
+                alert('Failed to capture screenshot: ' + e.message);
             }
         }
 
@@ -2780,7 +3049,8 @@
                 const key = date.toISOString().slice(0, 10);
                 const isSelected = key === calendarSelectedDate;
                 const isToday = key === new Date().toISOString().slice(0, 10);
-                const count = countByDay[key] || 0;
+                const dayEvents = calendarEventsCache.filter(ev => formatDateKey(ev.start_time) === key);
+                const count = dayEvents.length;
 
                 cells.push(`
                     <button onclick="selectCalendarDate('${key}')" class="h-24 rounded-lg border p-2 text-left transition ${isSelected ? 'border-orange-500 bg-orange-500/10' : 'border-slate-700 bg-slate-900/50 hover:bg-slate-800/60'}">
@@ -2788,8 +3058,12 @@
                             <span class="text-sm ${isToday ? 'text-orange-400 font-bold' : 'text-slate-200'}">${day}</span>
                             ${count ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300">${count}</span>` : ''}
                         </div>
-                        <div class="mt-2 space-y-1">
-                            ${(calendarEventsCache.filter(ev => formatDateKey(ev.start_time) === key).slice(0, 2).map(ev => { const marker = ev.symbol || '•'; const color = ev.color || '#94a3b8'; return `<div class=\"text-[10px] truncate text-slate-300 flex items-center gap-1\"><span style=\"color:${color}\">${marker}</span><span>${ev.title}</span></div>`; }).join(''))}
+                        <div class="mt-2 space-y-1 max-h-14 overflow-hidden">
+                            ${dayEvents.slice(0, 3).map(ev => { 
+                                const color = ev.color || '#f97316'; 
+                                return `<div class="text-[10px] truncate text-slate-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:${color}"></span><span class="truncate">${ev.title}</span></div>`; 
+                            }).join('')}
+                            ${count > 3 ? `<div class="text-[10px] text-slate-500">+${count - 3} more</div>` : ''}
                         </div>
                     </button>
                 `);
@@ -2823,21 +3097,36 @@
                 return;
             }
 
-            panel.innerHTML = events.map(ev => `
-                <div class="glass-card p-4 rounded-xl">
+            panel.innerHTML = events.map(ev => {
+                const eventColor = ev.color || '#f97316';
+                const statusColors = {
+                    'scheduled': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                    'running': 'bg-green-500/20 text-green-300 border-green-500/30',
+                    'completed': 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+                    'failed': 'bg-red-500/20 text-red-300 border-red-500/30',
+                    'cancelled': 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+                };
+                const statusClass = statusColors[ev.status] || 'bg-slate-500/20 text-slate-300';
+                const timeStr = new Date(ev.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                <div class="glass-card p-4 rounded-xl" style="border-left: 4px solid ${eventColor}">
                     <div class="flex items-center justify-between mb-2">
-                        <h5 class="font-semibold text-white flex items-center gap-2"><span style="color:${ev.color || '#94a3b8'}">${ev.symbol || '•'}</span><span>${ev.title}</span></h5>
-                        <span class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300">${ev.status}</span>
+                        <h5 class="font-semibold text-white flex items-center gap-2"><span style="color:${eventColor}">${ev.symbol || '•'}</span><span>${ev.title}</span></h5>
+                        <span class="text-xs px-2 py-1 rounded border ${statusClass}">${ev.status}</span>
                     </div>
-                    <div class="text-xs text-slate-400 mb-2">${new Date(ev.start_time).toLocaleString()}${ev.end_time ? ` → ${new Date(ev.end_time).toLocaleString()}` : ''}</div>
-                    <div class="text-sm text-slate-300 whitespace-pre-wrap mb-3">${ev.prompt}</div>
+                    <div class="flex items-center gap-3 text-xs text-slate-400 mb-2">
+                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ${timeStr}</span>
+                        <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${new Date(ev.start_time).toLocaleDateString()}</span>
+                    </div>
+                    <div class="text-sm text-slate-300 whitespace-pre-wrap mb-3 bg-slate-800/50 p-2 rounded-lg">${ev.prompt}</div>
                     <div class="flex gap-2">
                         <button onclick="editCalendarEventPrompt(${ev.agent_id}, ${ev.id})" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1 rounded">Edit</button>
                         <button onclick="markCalendarCancelled(${ev.agent_id}, ${ev.id})" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1 rounded">Cancel</button>
                         <button onclick="deleteCalendarEvent(${ev.agent_id}, ${ev.id})" class="bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-300 text-xs px-3 py-1 rounded">Delete</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         async function loadCalendarsSection() {
@@ -2862,6 +3151,7 @@
 
         async function loadCalendarEvents() {
             const agentId = document.getElementById('calendar-agent').value;
+            const userId = document.getElementById('calendar-user')?.value || 0;
             if (!agentId) {
                 calendarEventsCache = [];
                 renderCalendarGrid();
@@ -2869,7 +3159,7 @@
             }
 
             try {
-                const res = await fetch(`/api/agents/${agentId}/calendars`);
+                const res = await fetch(`/api/agents/${agentId}/calendars?userId=${userId}`);
                 const data = await res.json();
                 calendarEventsCache = data.events || [];
 
@@ -2912,10 +3202,11 @@
                 end_time: end ? new Date(end).toISOString() : null,
                 target_user_id: userId,
                 color,
-                symbol
+                symbol,
+                userId
             };
 
-            const res = await fetch(`/api/agents/${agentId}/calendars`, {
+            const res = await fetch(`/api/agents/${agentId}/calendars?userId=${userId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -2938,6 +3229,7 @@
         async function editCalendarEventPrompt(agentId, eventId) {
             const event = calendarEventsCache.find(ev => ev.id === eventId);
             if (!event) return;
+            const userId = document.getElementById('calendar-user')?.value || 0;
 
             const title = prompt('Edit title', event.title);
             if (title === null) return;
@@ -2948,56 +3240,100 @@
             initCalendarSymbolPicker(event.symbol || '•');
             const symbol = document.getElementById('calendar-symbol').value || '•';
 
-            await fetch(`/api/agents/${agentId}/calendars/${eventId}`, {
+            await fetch(`/api/agents/${agentId}/calendars/${eventId}?userId=${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: title.trim(), prompt: promptText.trim(), color: color.trim(), symbol: window.CalendarSymbols ? window.CalendarSymbols.normalizeCalendarSymbol(symbol) : '•' })
+                body: JSON.stringify({ title: title.trim(), prompt: promptText.trim(), color: color.trim(), symbol: window.CalendarSymbols ? window.CalendarSymbols.normalizeCalendarSymbol(symbol) : '•', userId })
             });
             await loadCalendarEvents();
         }
 
         async function deleteCalendarEvent(agentId, eventId) {
-            await fetch(`/api/agents/${agentId}/calendars/${eventId}`, { method: 'DELETE' });
+            const userId = document.getElementById('calendar-user')?.value || 0;
+            await fetch(`/api/agents/${agentId}/calendars/${eventId}?userId=${userId}`, { method: 'DELETE' });
             await loadCalendarEvents();
         }
 
         async function markCalendarCancelled(agentId, eventId) {
-            await fetch(`/api/agents/${agentId}/calendars/${eventId}`, {
+            const userId = document.getElementById('calendar-user')?.value || 0;
+            await fetch(`/api/agents/${agentId}/calendars/${eventId}?userId=${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'cancelled' })
+                body: JSON.stringify({ status: 'cancelled', userId })
             });
             await loadCalendarEvents();
         }
 
         async function loadAuditLogs() {
             try {
-                const res = await fetch('/api/audit?limit=50');
+                const agentFilter = document.getElementById('audit-agent-filter')?.value || '';
+                const statusFilter = document.getElementById('audit-status-filter')?.value || '';
+                const searchFilter = document.getElementById('audit-search')?.value || '';
+                
+                let url = '/api/audit?limit=100';
+                if (agentFilter) url += `&agentId=${agentFilter}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+                
+                const res = await fetch(url);
                 if (res.status === 401) return logout();
-                const logs = await res.json();
+                let logs = await res.json();
+                
+                if (searchFilter) {
+                    const search = searchFilter.toLowerCase();
+                    logs = logs.filter(log => 
+                        (log.command || '').toLowerCase().includes(search) ||
+                        (log.response_text || '').toLowerCase().includes(search) ||
+                        (log.output_snippet || '').toLowerCase().includes(search)
+                    );
+                }
+                
                 const agents = await fetch('/api/agents').then(r => r.json());
                 const agentMap = {};
                 agents.forEach(a => agentMap[a.id] = a.name);
 
                 const tbody = document.getElementById('audit-tbody');
-                tbody.innerHTML = '';
+                const emptyEl = document.getElementById('audit-empty');
+                
+                if (!logs.length) {
+                    tbody.innerHTML = '';
+                    if (emptyEl) emptyEl.classList.remove('hidden');
+                    return;
+                }
+                
+                if (emptyEl) emptyEl.classList.add('hidden');
 
                 logs.forEach(log => {
-                    const statusColor = log.status === 'approved' ? 'text-green-400' : log.status === 'denied' ? 'text-red-400' : 'text-yellow-400';
+                    const statusColors = {
+                        'approved': 'text-green-400 bg-green-500/10',
+                        'denied': 'text-red-400 bg-red-500/10',
+                        'pending': 'text-yellow-400 bg-yellow-500/10',
+                        'error': 'text-red-400 bg-red-500/10'
+                    };
+                    const statusColor = statusColors[log.status] || 'text-slate-400 bg-slate-500/10';
+                    const actionType = log.action_type || 'command';
+                    const responseText = log.response_text || log.output_snippet || '-';
+                    
                     const row = `
                         <tr class="hover:bg-white/5">
-                            <td class="px-4 py-3 font-mono text-slate-400">${new Date(log.created_at).toLocaleString()}</td>
+                            <td class="px-4 py-3 font-mono text-slate-400 text-xs">${new Date(log.created_at).toLocaleString()}</td>
                             <td class="px-4 py-3">${agentMap[log.agent_id] || 'Unknown'}</td>
-                            <td class="px-4 py-3 font-mono text-xs truncate max-w-xs" title="${log.command}">${log.command}</td>
-                            <td class="px-4 py-3 ${statusColor} font-mono">${log.status.toUpperCase()}</td>
-                            <td class="px-4 py-3 text-xs text-slate-400 max-w-xs truncate" title="${log.output_snippet || ''}">${log.output_snippet || '-'}</td>
+                            <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs bg-slate-700 text-slate-300">${actionType}</span></td>
+                            <td class="px-4 py-3 font-mono text-xs truncate max-w-xs" title="${log.command}">${log.command || '-'}</td>
+                            <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${statusColor}">${log.status.toUpperCase()}</span></td>
+                            <td class="px-4 py-3 text-xs text-slate-400 max-w-xs truncate" title="${responseText}">${responseText}</td>
                             <td class="px-4 py-3">
-                                <button onclick="viewContainer('${log.container_id}')" class="text-orange-500 hover:text-white text-xs">View Terminal</button>
+                                <button onclick="viewContainer('${log.container_id}')" class="text-orange-500 hover:text-white text-xs">View</button>
                             </td>
                         </tr>
                     `;
                     tbody.innerHTML += row;
                 });
+                
+                const agentSelect = document.getElementById('audit-agent-filter');
+                if (agentSelect && agentSelect.children.length <= 1) {
+                    agentSelect.innerHTML = '<option value="">All Agents</option>' + 
+                        agents.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+                }
             } catch (e) {
                 console.error('Failed to load audit logs:', e);
             }
@@ -3071,6 +3407,23 @@
                 }
             } catch (e) {
                 alert('Failed to delete agent: ' + e.message);
+            }
+        }
+
+        async function resetBudget(id, name) {
+            if (!confirm(`Reset budget for agent "${name}"? This will set current spend to $0.00.`)) return;
+
+            try {
+                const res = await fetch(`/api/agents/${id}/reset-budget`, { method: 'POST' });
+                if (res.ok) {
+                    loadAgents();
+                    loadStats();
+                } else {
+                    const data = await res.json();
+                    alert('Failed to reset budget: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Failed to reset budget: ' + e.message);
             }
         }
 
@@ -3653,19 +4006,27 @@
 
         async function loadMemoriesSection() {
             try {
-                const res = await fetchAPI('/api/agents');
-                if (res.agents) {
+                const [agentsRes, usersRes] = await Promise.all([fetch('/api/agents'), fetch('/api/allowlist')]);
+                const agents = await agentsRes.json();
+                const users = await usersRes.json();
+                
+                if (agents) {
                     const select = document.getElementById('memory-agent-select');
+                    const userSelect = document.getElementById('memory-user-select');
                     const currentValue = select.value;
                     select.innerHTML = '<option value="">Select an agent...</option>';
-                    res.agents.forEach(a => {
+                    agents.forEach(a => {
                         select.innerHTML += `<option value="${a.id}">${a.name} (${a.role})</option>`;
                     });
-                    if (currentValue && res.agents.find(a => a.id == currentValue)) {
+                    if (users) {
+                        userSelect.innerHTML = users.map(u => `<option value="${u.user_id}">${u.first_name || u.username || u.user_id} (${u.user_id})</option>`).join('') || '<option value="0">User 0</option>';
+                        if (users.length) userSelect.value = String(users[0].user_id);
+                    }
+                    if (currentValue && agents.find(a => a.id == currentValue)) {
                         select.value = currentValue;
                         loadAgentMemories();
-                    } else if (res.agents.length > 0) {
-                        select.value = res.agents[0].id;
+                    } else if (agents.length > 0) {
+                        select.value = agents[0].id;
                         loadAgentMemories();
                     }
                 }
@@ -3677,10 +4038,11 @@
 
         async function loadAgentMemories() {
             const agentId = document.getElementById('memory-agent-select').value;
+            const userId = document.getElementById('memory-user-select')?.value || 0;
             if (!agentId) return;
 
             try {
-                const res = await fetchAPI(`/api/agents/${agentId}/memory`);
+                const res = await fetchAPI(`/api/agents/${agentId}/memory?userId=${userId}`);
                 const tbody = document.getElementById('memories-tbody');
                 const empty = document.getElementById('memories-empty');
 
@@ -3706,6 +4068,7 @@
 
         async function addAgentMemory() {
             const agentId = document.getElementById('memory-agent-select').value;
+            const userId = document.getElementById('memory-user-select')?.value || 0;
             const input = document.getElementById('new-memory-input');
             const content = input.value.trim();
 
@@ -3713,10 +4076,10 @@
             if (!content) return;
 
             try {
-                const res = await fetchAPI(`/api/agents/${agentId}/memory`, {
+                const res = await fetchAPI(`/api/agents/${agentId}/memory?userId=${userId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content })
+                    body: JSON.stringify({ content, userId })
                 });
                 if (res.success) {
                     input.value = '';
@@ -3729,12 +4092,32 @@
             }
         }
 
+        async function clearAgentMemories() {
+            const agentId = document.getElementById('memory-agent-select').value;
+            const userId = document.getElementById('memory-user-select')?.value || 0;
+            if (!agentId || !confirm('Are you sure you want to clear ALL memories for this agent? This cannot be undone.')) return;
+
+            try {
+                const res = await fetchAPI(`/api/agents/${agentId}/memory?userId=${userId}`, {
+                    method: 'DELETE'
+                });
+                if (res.success) {
+                    loadAgentMemories();
+                } else {
+                    alert('Failed to clear memories: ' + (res.error || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
         async function deleteAgentMemory(memoryId) {
             const agentId = document.getElementById('memory-agent-select').value;
+            const userId = document.getElementById('memory-user-select')?.value || 0;
             if (!agentId || !confirm('Are you sure you want to delete this memory?')) return;
 
             try {
-                const res = await fetchAPI(`/api/agents/${agentId}/memory/${memoryId}`, {
+                const res = await fetchAPI(`/api/agents/${agentId}/memory/${memoryId}?userId=${userId}`, {
                     method: 'DELETE'
                 });
                 if (res.success) {

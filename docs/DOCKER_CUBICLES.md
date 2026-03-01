@@ -11,23 +11,38 @@ Each agent is spun up in a **Debian-based Docker container** with the following 
 
 ## 🏗️ The Portal (Standardized Directory Structure)
 
-The workspace is divided into four main directories, each serving a specific role in the agent's interaction with the user:
+The workspace is organized into specialized folders:
 
-### 1. `/app/workspace/in/` (Incoming Portal)
-- Files uploaded by the user (via Telegram or Dashboard) appear here.
-- The agent can read these files to process data, summarize documents, or analyze code.
+### 1. 📂 `/app/workspace/work/` (Sandbox)
+- The agent's primary working directory
+- Use this for all tasks and intermediate files
+- Always `cd` here before starting work
+- Contains the `.hermit.log` audit file
 
-### 2. `/app/workspace/out/` (Outgoing Portal)
-- This directory is monitored in real-time by the **Orchestrator's File Watcher**.
-- When the agent places a file here (e.g., `report.pdf`, `data.csv`), the Orchestrator automatically detects it and sends it to the user.
+### 2. 📥 `/app/workspace/in/` (Incoming Portal)
+- Files uploaded by the user (via Telegram or Dashboard) appear here
+- Check this folder when user mentions uploading a file
+- Agent can read these files to process data, summarize documents, or analyze code
 
-### 3. `/app/workspace/www/` (Web Preview Portal)
-- Any file placed here is automatically served by the Orchestrator's static preview server.
-- This allows agents to build and "host" simple web applications, dashboards, or static sites that the user can view via a public URL.
+### 3. 📤 `/app/workspace/out/` (Outgoing Portal)
+- Monitor by the **ed in real-timeOrchestrator's File Watcher**
+- Simply save any file here and it's automatically delivered to the user via Telegram
+- Works for PDFs, CSV, images, videos, or any file type
 
-### 4. `/app/workspace/work/` (Scratchpad)
-- This is the agent's primary working directory.
-- It contains intermediate processing files, scripts, and the `.hermit.log` audit file.
+### 4. 🌐 `/app/workspace/www/` (Web Apps Portal)
+- Contains web applications created by the agent
+- **Each subfolder is a separate web app** (e.g., `/app/workspace/www/myapp/`)
+- **Each web app MUST have an `index.html` file**
+- Use vanilla HTML, CSS, JavaScript only (no frameworks like React/Vue)
+- Start a web server on port 8080 for the user to preview
+
+### 5. 📊 Host Data Directory (`/app/workspace/../data/`)
+The host system manages these databases (do not modify directly):
+
+| Database | Purpose |
+|----------|---------|
+| `calendar.db` | Stores scheduled calendar events (future prompts). When the time arrives, the system triggers your prompt automatically. |
+| `rag.db` | Persistent RAG memory for facts and knowledge. Survives container restarts. |
 
 ## 📜 Lifecycle of a Cubicle
 

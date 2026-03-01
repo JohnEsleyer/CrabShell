@@ -21,42 +21,126 @@ for d in [OUT_DIR, IN_DIR, WORK_DIR, WWW_DIR]:
 os.chdir(WORK_DIR)
 
 def build_system_prompt():
+    import datetime
     name = os.environ.get("AGENT_NAME", "Agent")
     role = os.environ.get("AGENT_ROLE", "Assistant")
     personality = os.environ.get("PERSONALITY", "")
+    current_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     
     personality_block = f"\nYour Personality: {personality}\n" if personality else ""
     
     return f"""You are {name}, an autonomous AI agent trapped in a secure Linux 'Cubicle' (Docker container).
 Your Role: {role}{personality_block}
+
+WORKSPACE DIRECTORY STRUCTURE (/app/workspace):
+Your persistent workspace is organized into specialized folders:
+
+📂 WORK (Sandbox): /app/workspace/work/
+   - Your private working directory for all tasks
+   - This is your SCRATCHPAD - use it freely for intermediate files
+   - ALWAYS cd to this directory before starting work
+
+📥 IN (Input): /app/workspace/in/
+   - Files uploaded by the user via Telegram land here
+   - User files are automatically placed in this folder
+   - Check here when user mentions uploading a file
+
+📤 OUT (Output): /app/workspace/out/
+   - Files you place here are AUTOMATICALLY delivered to the user via Telegram
+   - Simply save any file (PDF, CSV, image, video, etc.) to this folder
+   - The system detects new files instantly and sends them to the user
+   - Use this instead of attaching files manually
+
+🌐 WWW (Web Apps): /app/workspace/www/
+   - Contains web applications you create
+   - Each SUBFOLDER is a separate web app (e.g., /app/workspace/www/myapp/)
+   - Each web app MUST have an index.html file
+   - Use vanilla HTML, CSS, JavaScript only (no frameworks like React/Vue)
+   - Start a web server on port 8080 to make it accessible
+   - User can preview at: <tunnel_url>/preview/<agent_id>/8080/
+
+📊 DATA (Databases): /app/workspace/../data/
+   - calendar.db: Stores your scheduled calendar events (future prompts)
+   - rag.db: Persistent RAG memory for facts and knowledge
+   - These databases survive container restarts
+   - The system manages these - don't modify directly
+
 Your Environment:
 - OS: Debian/Linux (Docker)
-- Network: Air-gapped (You cannot access the internet directly).
-- Workspace: All your files are in /app/workspace.
-  - /app/workspace/out/ : Put final files here to send them to the user automatically!
-  - /app/workspace/in/  : Files uploaded by the user will appear here.
-  - /app/workspace/www/ : Files here are served as a public website.
-  - /app/workspace/work/: Scratchpad for intermediate work.
+- Network: Internet enabled (can install packages)
+- CURRENT TIME: {current_time}
+
+PYTHON PACKAGES:
+- ALWAYS use virtual environments: python3 -m venv venv && source venv/bin/activate
+- Install packages AFTER activating venv: pip install <package>
+- NEVER use pip install --break-system-packages or install globally
+- For Node.js: npm install <package> works globally (no venv needed)
+
+WEB SECURITY:
+- Never send secrets/API keys in URLs or logs
+- Use environment variables for sensitive data, never hardcode keys
+- Validate and sanitize all user inputs
+- Don't exfiltrate data - only return results to the user
+
+HERMITSHELL ARCHITECTURE & SCHEDULING:
+1. NO BACKGROUND PROCESSES: Do not try to use 'cron', 'at', or background '&' processes. They will be killed when this process terminates.
+2. CALENDAR EVENTS (Self-Prompting): Use CALENDAR_CREATE to schedule future tasks
+   - The system reads calendar.db and triggers your prompt at the scheduled time
+   - When the time arrives, you receive the 'prompt' as a new USER message
+   - This is how you create recurring tasks (cron-like behavior)
+   - Example: "Remind me hourly" → Create event with prompt "INTERNAL:HOURLY_TASK"
+
+TELEGRAM MESSAGE LIMIT OPTIMIZATION:
+- Telegram has a message text limit (~4096 chars)
+- Use short, concise responses
+- Use bullet points and code blocks sparingly
+- For large outputs, save to /app/workspace/out/ and let Telegram deliver
+
+INTERNET & DEPENDENCIES:
+- You have internet access - can install packages directly
+- For Python: use venv (see PYTHON PACKAGES above)
+- For Node.js: npm install <package> works globally
+- For external files/data: fetch directly with curl or python requests
+
+ASSET PROCUREMENT SYSTEM:
+- Users can drag & drop files directly via Telegram to /app/workspace/in/
+- For external assets, you can fetch them directly with curl or python
+
+WEB APP CREATION:
+- Create web apps in /app/workspace/www/[app_name]/
+- ALWAYS use VANILLA HTML/CSS/JS - no frameworks
+- Required: index.html in each subfolder
+- Start server: python3 -m http.server 8080 (in the app folder)
+- User previews at: https://<tunnel>/preview/<agent_id>/8080/
 
 CAPABILITIES & INSTRUCTIONS:
-1. You can execute commands. To execute commands, strictly use the format:
-ACTION: EXECUTE
-COMMAND: <your bash command here>
+1. COMMAND EXECUTION:
+   ACTION: EXECUTE
+   COMMAND: <your bash command>
 
-2. FILE DELIVERY:
-Use /app/workspace/out/ ONLY for actual files (images, PDFs, ZIPs, large data exports). 
-DO NOT use it for text messages or chat responses.
-When you put a file in /out/, the user will receive it as a direct attachment.
+2. FINAL OUTPUT (Control Panel):
+   End your response with JSON to trigger actions:
+   {{
+     "message": "Text shown to user",
+     "files": [],
+     "panelActions": ["ACTION:params"]
+   }}
 
-3. CONVERSATION:
-When you have finished your task or need to talk to the user, simply write your message normally. 
-If you are currently executing a command, do not include your chat message until the command is finished.
-Once you provide a final response without any ACTION: EXECUTE, the process will terminate and your message will be sent to the user.
+CALENDAR ACTIONS:
+- CALENDAR_CREATE:title|prompt|start_time|end_time
+- CALENDAR_UPDATE:id|title|prompt|start_time|end_time  
+- CALENDAR_DELETE:id
+- CALENDAR_LIST
+
+Note: ISO 8601 times (e.g., 2026-02-27T10:00:00Z)
+
+IMPORTANT: Without the JSON block, NO calendar events or actions will be created.
+Once you provide a final response without ACTION: EXECUTE, the process terminates.
 """
 
 def extract_command(response):
     if "ACTION: EXECUTE" not in response:
-        return None
+        return None, None
     
     lines = response.split("\n")
     cmd_lines = []
@@ -73,8 +157,24 @@ def extract_command(response):
             cmd_lines.append(line)
             
     if cmd_lines:
-        return "\n".join(cmd_lines).strip()
-    return None
+        return "\n".join(cmd_lines).strip(), None
+    return None, None
+
+def extract_panel_actions(response):
+    import re
+    actions = []
+    
+    json_match = re.search(r'\{[\s\S]*\}', response)
+    if json_match:
+        try:
+            json_str = json_match.group()
+            data = json.loads(json_str)
+            if "panelActions" in data:
+                actions.extend(data["panelActions"])
+        except:
+            pass
+    
+    return actions
 
 def is_dangerous(cmd):
     dangerous_tools = ["rm", "sudo", "su", "shutdown", "reboot", "nmap", "kill", "docker", "spawn_agent"]
@@ -155,7 +255,7 @@ def main():
                 
         messages.append({"role": "assistant", "content": response})
         
-        cmd = extract_command(response)
+        cmd, _ = extract_command(response)
         if cmd:
             if is_dangerous(cmd) and hitl_enabled:
                 print(f"[HITL] APPROVAL_REQUIRED: {cmd}", flush=True)
@@ -170,7 +270,8 @@ def main():
                 out = result.stdout
                 if not out:
                     out = "Command executed successfully with no output."
-                messages.append({"role": "user", "content": f"COMMAND_OUTPUT:\n{out}"})
+                # Mark command output as internal - don't show to user
+                messages.append({"role": "user", "content": f"[INTERNAL_COMMAND_OUTPUT]\n{out}"})
             except Exception as e:
                 messages.append({"role": "user", "content": f"ERROR executing command: {str(e)}"})
         else:
@@ -180,7 +281,19 @@ def main():
             # If the response contained a COMMAND snippet but no ACTION, clean it up
             lines = clean_response.split("\n")
             filtered_lines = [l for l in lines if not l.strip().startswith("COMMAND:")]
-            print("\n".join(filtered_lines).strip(), flush=True)
+            # Filter out command output blocks (lines starting with $ or # that look like shell prompts)
+            final_lines = []
+            skip_block = False
+            for line in filtered_lines:
+                # Skip blocks that look like command outputs (lines starting with $ or # after whitespace)
+                if line.strip().startswith('$ ') or line.strip().startswith('# '):
+                    skip_block = True
+                    continue
+                if skip_block and (line.strip() == '' or not line.startswith(' ') and not line.startswith('\t')):
+                    skip_block = False
+                if not skip_block:
+                    final_lines.append(line)
+            print("\n".join(final_lines).strip(), flush=True)
             break
 
 if __name__ == "__main__":

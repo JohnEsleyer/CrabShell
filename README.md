@@ -25,16 +25,70 @@ HermitShell is a **Secure Agentic Operating System**. Each AI agent runs in a Do
 - **Human-in-the-Loop (HITL)**: Require approval before executing dangerous commands
 - **Delegation HITL**: Agent collaboration requires operator approval
 - **Async Telegram Processing**: Instant responses with background processing and status updates
-- **Audit Logs**: Complete searchable history of all agent commands
+- **Audit Logs**: Complete searchable history of all agent commands and responses
 - **Web Terminal**: Attach to running agent containers via xterm.js
 - **Web Dashboard**: Manage agents, users, and settings via a built-in GUI
 - **Improved Agent Cards**: Less crowded cards with better action button fit and readability
 - **File Browser**: Browse and download agent workspace files from dashboard
 - **Manual Container Controls**: Start/Stop/Delete containers from the dashboard
 - **Container Labels**: Track cubicles with `hermitshell.*` Docker labels
+- **Agent Status Indicator**: Green (active) or amber/yellow (idle) status dots
+- **Calendar Events**: Schedule future tasks with CRON-based event system
+- **Sites Dashboard**: View and manage web apps created by agents
+- **Site Preview Modal**: Preview sites in a modal with webview
+- **Tunnel Sharing**: Share temporary tunnel links for Telegram access
+- **Asset Procurement**: Request files from internet with user approval
+- **Screenshot Capture**: Capture Playwright screenshots of sites
 
 ## Architecture
 
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     HermitShell                               │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Web Dashboard (Port 3000)              │   │
+│  │  - Agent Management  - Budget Tracking  - Settings   │   │
+│  │  - Audit Logs       - Web Terminal    - Test Agent  │   │
+│  │  - Cubicles View    - Sync Bots       - File Browser│   │
+│  │  - Calendar Events  - Sites Dashboard - Memories    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                           │                                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Node.js Shell (Orchestrator)             │   │
+│  │  - libSQL DB  - Docker Management  - Webhooks        │   │
+│  │  - HITL Controller  - Audit Logger  - API Key Check  │   │
+│  │  - Auto-Webhook Registration  - Cloudflare Tunnel    │   │
+│  │  - File Delivery   - Web Preview Proxy              │   │
+│  │  - Calendar Scheduler - Asset Procurement           │   │
+│  │  - Site Screenshots - Tunnel Manager                │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                           │                                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │           Cloudflare Quick Tunnel (cloudflared)      │   │
+│  │  - Auto-generated public URL (trycloudflare.com)     │   │
+│  │  - Webhook delivery  - Web preview access            │   │
+│  │  - Site tunnel sharing - Temporary links             │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│  Agent A      │   │  Agent B      │   │  Agent C      │
+│  "Sherlock"   │   │  "DevOps"     │   │  "Researcher" │
+│ hermitshell/base │   │hermitshell/python│   │hermitshell/netsec│
+│  [Status:Idle]│   │  [Status:Active]│  │  [Status:Idle] │
+│  [HITL: ON]   │   │  [HITL: OFF]  │   │  [HITL: ON]   │
+│  [Workspace]  │   │  [Workspace]  │   │  [Workspace]  │
+│  [Port 8080]  │   │  [Port 8080]  │   │  [Port 8080]  │
+│  [Running]    │   │  [Running]    │   │  [Stopped]    │
+│  (continuous) │   │  (continuous) │   │  (can start)  │
+└───────────────┘   └───────────────┘   └───────────────┘
+        │                   │                   │
+        └───────────────────┴───────────────────┘
+                            │
+                    Agent Meetings (DELEGATE)
+                    Requires Operator Approval
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     HermitShell                               │
@@ -275,16 +329,72 @@ HermitShell uses a "Portal" architecture for file transfers. Instead of parsing 
 3. The file is automatically uploaded to the user's Telegram chat.
 
 **Folder Organization:**
-- `/workspace/out/`: 📤 **Output Portal**. Files placed here are delivered to Telegram immediately.
-- `/workspace/in/`: 📥 **Input Portal**. Files uploaded by the user to the bot land here.
-- `/workspace/www/`: 🌐 **Web Portal**. Files here are served via the public preview URL.
-- `/workspace/work/`: 🛠️ **Scratchpad**. Private working area for the agent.
+- `/workspace/work/`: 📂 **Sandbox**. Your primary working directory. Always cd here before starting work.
+- `/workspace/in/`: 📥 **Input**. Files uploaded by the user via Telegram land here.
+- `/workspace/out/`: 📤 **Output**. Files placed here are delivered to Telegram immediately.
+- `/workspace/www/`: 🌐 **Web Apps**. Each subfolder is a separate web app with index.html.
+
+**Host Data Directory** (for database operations):
+- `calendar.db`: Stores scheduled events. When time arrives, your prompt triggers automatically.
+- `rag.db`: Persistent RAG memory for facts/knowledge.
+
+### Agent Status Indicator
+
+Each agent displays a status indicator:
+
+- 🟢 **Green dot**: Agent is active (processing a request)
+- 🟡 **Amber/Yellow dot**: Agent is idle (waiting for requests)
+
+The status is automatically updated based on agent activity.
+
+### Calendar Events (CRON-based Scheduling)
+
+Agents can schedule future tasks using calendar events:
+
+- **How it works**: Agent uses `CALENDAR_CREATE` panel action to schedule events
+- **CRON-like behavior**: Events trigger at specified times automatically
+- **Future prompts**: The prompt becomes the new user message when the event fires
+- **Recurring tasks**: Schedule the NEXT event in your response to create loops
+- **Display**: Upcoming events shown in Calendar Dashboard in the control panel
+- **Management**: User can manually manage events through the dashboard
+
+```
+Example: User says "Tomorrow at 9AM, analyze the data"
+Agent creates: CALENDAR_CREATE:Data Analysis|Analyze the CSV file|2026-02-28T09:00:00Z|
+```
+
+### Sites Dashboard (Web Apps)
+
+The Sites dashboard shows web apps created by agents:
+
+- **Location**: Agents create web apps in `/workspace/www/[app_name]/`
+- **Each subfolder is a separate web app**
+- **Required**: Each web app MUST have an `index.html` file
+- **Vanilla Web**: Use plain HTML/CSS/JS (no frameworks like React/Vue)
+- **Preview**: Click "View" to open a modal with the site
+- **Share**: Generate temporary tunnel links for Telegram sharing (30 min expiry)
+
+### Asset Procurement System
+
+Since agents are air-gapped, they can request assets from the internet:
+
+1. Agent sends `ASSET_REQUEST` panel action with URL and description
+2. User receives notification to approve/decline
+3. Approved assets are downloaded to `/workspace/in/`
+
+### Screenshot Capture
+
+Sites can have Playwright screenshots captured:
+
+- Click "Capture Screenshot" in the Sites dashboard
+- Screenshots are stored in `data/screenshots/`
+- Available for preview in the dashboard
 
 ### Long-Term RAG Memory
 
 Every agent has access to a dedicated RAG (Retrieval-Augmented Generation) memory store.
 
-- **Storage**: Facts and rules are stored in the LibSQL database.
+- **Storage**: Facts and rules are stored in `rag.db` (LibSQL database).
 - **Management**: Use the **"Memories (RAG)"** tab in the Dashboard to manually add or prune memories.
 - **Injection**: Relevant memories are automatically injected into the agent's system prompt before every request.
 - **Persistence**: Memories survive container resets and workspace deletions.
@@ -405,6 +515,45 @@ TASK: Analyze the data file
 ```
 Requires operator approval before spawning sub-agent.
 
+### Calendar Actions (Panel Actions in JSON)
+Agents end responses with JSON to trigger control panel actions:
+```json
+{
+  "message": "Task scheduled!",
+  "panelActions": ["CALENDAR_CREATE:Title|Prompt|2026-02-28T09:00:00Z|"]
+}
+```
+
+**Available Calendar Actions:**
+- `CALENDAR_CREATE:title|prompt|start_time|end_time`
+- `CALENDAR_UPDATE:id|title|prompt|start_time|end_time`
+- `CALENDAR_DELETE:id`
+- `CALENDAR_LIST`
+
+### Asset Request
+Request files from the internet (requires user approval):
+```json
+{
+  "message": "I need this dataset",
+  "panelActions": ["ASSET_REQUEST:CSV Dataset|https://example.com/data.csv|csv"]
+}
+```
+
+### ClawMotion Video Creation
+Create videos using ClawMotion:
+```json
+{
+  "message": "Creating video...",
+  "panelActions": ["CLAWMOTION:Generate a sunset timelapse|30|output.mp4"]
+}
+```
+
+### Telegram Message Optimization
+Due to Telegram's message limit, agents should:
+- Keep responses concise
+- Use bullet points
+- Prefer file delivery over pasting content
+
 ## Container Labels
 
 All cubicles are tagged with Docker labels for tracking:
@@ -460,12 +609,19 @@ hermitshell.created_at: "2026-02-20T10:00:00Z"
 
 ### Database Schema
 
-- **agents**: id, name, role, telegram_token, system_prompt, docker_image, is_active, require_approval, created_at
+- **agents**: id, name, role, telegram_token, system_prompt, docker_image, is_active, require_approval, status, last_active_at, created_at
 - **budgets**: agent_id, daily_limit_usd, current_spend_usd, last_reset_date
 - **allowlist**: user_id, username, first_name, is_operator, added_at
 - **settings**: key, value (includes operator_telegram_id, public_url, api keys, etc.)
 - **admins**: id, username, password_hash, salt, created_at
-- **audit_logs**: id, agent_id, container_id, command, output_snippet, approved_by, approved_at, status, created_at
+- **audit_logs**: id, agent_id, container_id, command, output_snippet, response_text, action_type, approved_by, approved_at, status, created_at
+- **calendar_events**: id, agent_id, title, prompt, start_time, end_time, target_user_id, color, symbol, status, created_at
+- **asset_requests**: id, agent_id, user_id, description, url, file_type, status, requested_at, reviewed_by, reviewed_at
+- **site_screenshots**: id, agent_id, user_id, site_name, screenshot_path, created_at
+- **site_tunnels**: id, agent_id, user_id, site_name, tunnel_url, expires_at, is_active, created_at
+- **agent_memory**: id, agent_id, content, embedding, created_at
+- **meetings**: id, initiator_id, participant_id, topic, transcript, status, created_at
+- **agent_runtime_logs**: id, agent_id, level, source, message, context, created_at
 
 ## Security
 

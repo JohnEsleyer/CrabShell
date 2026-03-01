@@ -3,6 +3,23 @@ import * as path from 'path';
 
 type AgentLike = { id: number; name: string; docker_image?: string | null };
 
+export type WebApp = {
+    agentId: number;
+    userId: number;
+    workspaceId: string;
+    siteName: string;
+    agentName: string;
+    imageLabel: string;
+    previewUrl: string;
+    localUrl: string;
+    hasPassword: boolean;
+    password?: string;
+    passwordUpdatedAt?: string;
+    hasIndexHtml: boolean;
+    hasStyles: boolean;
+    files: string[];
+};
+
 export type SiteRecord = {
     agentId: number;
     userId: number;
@@ -14,6 +31,7 @@ export type SiteRecord = {
     hasPassword: boolean;
     password?: string;
     passwordUpdatedAt?: string;
+    webApps: WebApp[];
 };
 
 export type PasswordLookup = (agentId: number, port: number) => { password?: string; updatedAt?: number } | null;
@@ -40,6 +58,13 @@ function parseWorkspaceName(name: string): { agentId: number; userId: number } |
     return { agentId: Number(match[1]), userId: Number(match[2]) };
 }
 
+function isValidWebApp(dir: string): { hasIndexHtml: boolean; hasStyles: boolean; files: string[] } {
+    const files = fs.readdirSync(dir);
+    const hasIndexHtml = files.includes('index.html');
+    const hasStyles = files.includes('styles.css') || files.some(f => f.endsWith('.css'));
+    return { hasIndexHtml, hasStyles, files };
+}
+
 export function discoverSitesFromWorkspaces(
     workspaceDir: string,
     agents: AgentLike[],
@@ -64,18 +89,50 @@ export function discoverSitesFromWorkspaces(
         const agent = byId.get(parsed.agentId);
         const password = getPassword(parsed.agentId, 8080);
 
-        records.push({
-            agentId: parsed.agentId,
-            userId: parsed.userId,
-            workspaceId: ws.name,
-            agentName: agent?.name || `Agent #${parsed.agentId}`,
-            imageLabel: normalizeImageLabel(agent?.docker_image),
-            previewUrl: `${cleanBase}/preview/${parsed.agentId}/8080/`,
-            localUrl: `/preview/${parsed.agentId}/8080/`,
-            hasPassword: !!password?.password,
-            password: password?.password,
-            passwordUpdatedAt: password?.updatedAt ? new Date(password.updatedAt).toISOString() : undefined
-        });
+        const webApps: WebApp[] = [];
+        const subDirs = fs.readdirSync(wwwPath, { withFileTypes: true }).filter(d => d.isDirectory());
+        
+        for (const subDir of subDirs) {
+            if (subDir.name.startsWith('.')) continue;
+            
+            const webAppPath = path.join(wwwPath, subDir.name);
+            const { hasIndexHtml, hasStyles, files } = isValidWebApp(webAppPath);
+            
+            if (hasIndexHtml || hasStyles || files.length > 0) {
+                webApps.push({
+                    agentId: parsed.agentId,
+                    userId: parsed.userId,
+                    workspaceId: ws.name,
+                    siteName: subDir.name,
+                    agentName: agent?.name || `Agent #${parsed.agentId}`,
+                    imageLabel: normalizeImageLabel(agent?.docker_image),
+                    previewUrl: `${cleanBase}/preview/${parsed.agentId}/8080/${subDir.name}/`,
+                    localUrl: `/preview/${parsed.agentId}/8080/${subDir.name}/`,
+                    hasPassword: !!password?.password,
+                    password: password?.password,
+                    passwordUpdatedAt: password?.updatedAt ? new Date(password.updatedAt).toISOString() : undefined,
+                    hasIndexHtml,
+                    hasStyles,
+                    files
+                });
+            }
+        }
+
+        if (webApps.length > 0 || hasVisibleFiles(wwwPath)) {
+            records.push({
+                agentId: parsed.agentId,
+                userId: parsed.userId,
+                workspaceId: ws.name,
+                agentName: agent?.name || `Agent #${parsed.agentId}`,
+                imageLabel: normalizeImageLabel(agent?.docker_image),
+                previewUrl: `${cleanBase}/preview/${parsed.agentId}/8080/`,
+                localUrl: `/preview/${parsed.agentId}/8080/`,
+                hasPassword: !!password?.password,
+                password: password?.password,
+                passwordUpdatedAt: password?.updatedAt ? new Date(password.updatedAt).toISOString() : undefined,
+                webApps
+            });
+        }
     }
 
     return records.sort((a, b) => {

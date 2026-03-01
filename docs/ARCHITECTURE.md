@@ -17,11 +17,18 @@ Developed in **Node.js (TypeScript)** using **Fastify**. This is the brain of th
 A dedicated **Debian-based container** for each agent.
 - **Air-Gapped**: Standard networking is disabled or heavily restricted (proxied through host).
 - **Native Execution**: Agents run command-line tools natively inside their own environment.
-- **The Portal**: A standardized directory structure shared between the host and container.
-  - `/app/workspace/out/`: Outgoing files (sent to user).
-  - `/app/workspace/in/`: Incoming files (uploaded by user).
-  - `/app/workspace/www/`: Static assets served via a public preview preview URL.
-  - `/app/workspace/work/`: Internal scratchpad and logs.
+- **The Portal**: A standardized directory structure shared between the host and container:
+
+| Directory | Purpose |
+|-----------|---------|
+| `/app/workspace/work/` | Sandbox - agent's primary working directory |
+| `/app/workspace/in/` | Files uploaded by user via Telegram |
+| `/app/workspace/out/` | Files auto-delivered to user via Telegram |
+| `/app/workspace/www/` | Web apps (each subfolder = separate app with index.html) |
+
+**Host-side databases** (accessible via `/app/workspace/../data/`):
+- `calendar.db`: Scheduled events that trigger agent prompts
+- `rag.db`: Persistent RAG memory for facts and knowledge
 
 ### 3. The Agent (Crab)
 A **Python-based daemon** (formerly Rust `crab`) that lives inside the container.

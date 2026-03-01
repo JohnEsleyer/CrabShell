@@ -67,6 +67,8 @@ export interface AuditLog {
     approved_at: string | null;
     status: string;
     created_at: string;
+    response_text?: string | null;
+    action_type?: string | null;
 }
 
 export interface AgentRuntimeLog {
@@ -95,6 +97,26 @@ export interface CalendarEvent {
     completed_at?: string | null;
     created_at: string;
     updated_at: string;
+}
+
+export interface SiteScreenshot {
+    id: number;
+    agent_id: number;
+    user_id: number;
+    site_name: string;
+    screenshot_path: string | null;
+    created_at: string;
+}
+
+export interface SiteTunnel {
+    id: number;
+    agent_id: number;
+    user_id: number;
+    site_name: string;
+    tunnel_url: string | null;
+    expires_at: string | null;
+    is_active: number;
+    created_at: string;
 }
 
 export async function initDb(): Promise<void> {
@@ -257,6 +279,50 @@ export async function initDb(): Promise<void> {
         await db.execute('ALTER TABLE calendar_events ADD COLUMN symbol TEXT');
     } catch (e) {
     }
+
+    try {
+        await db.execute('ALTER TABLE agents ADD COLUMN status TEXT DEFAULT "idle"');
+    } catch (e) {
+    }
+
+    try {
+        await db.execute('ALTER TABLE agents ADD COLUMN last_active_at TEXT');
+    } catch (e) {
+    }
+
+    try {
+        await db.execute('ALTER TABLE audit_logs ADD COLUMN response_text TEXT');
+    } catch (e) {
+    }
+
+    try {
+        await db.execute('ALTER TABLE audit_logs ADD COLUMN action_type TEXT');
+    } catch (e) {
+    }
+
+    await db.executeMultiple(`
+        CREATE TABLE IF NOT EXISTS site_screenshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            site_name TEXT NOT NULL,
+            screenshot_path TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (agent_id) REFERENCES agents(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS site_tunnels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            site_name TEXT NOT NULL,
+            tunnel_url TEXT,
+            expires_at DATETIME,
+            is_active INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (agent_id) REFERENCES agents(id)
+        );
+    `);
 
     await db.executeMultiple(`
         INSERT OR IGNORE INTO settings (key, value) VALUES ('default_provider', 'openrouter');
@@ -499,6 +565,77 @@ export async function claimDueCalendarEvents(nowIso: string): Promise<CalendarEv
     return claimed;
 }
 
+export async function createSiteScreenshot(screenshot: {
+    agent_id: number;
+    user_id: number;
+    site_name: string;
+    screenshot_path: string;
+}): Promise<number> {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: `INSERT INTO site_screenshots (agent_id, user_id, site_name, screenshot_path) VALUES (?, ?, ?, ?)`,
+        args: [screenshot.agent_id, screenshot.user_id, screenshot.site_name, screenshot.screenshot_path]
+    });
+    return Number(rs.lastInsertRowid);
+}
+
+export async function getSiteScreenshots(agentId: number, userId: number, siteName: string): Promise<SiteScreenshot[]> {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: 'SELECT * FROM site_screenshots WHERE agent_id = ? AND user_id = ? AND site_name = ? ORDER BY created_at DESC LIMIT 1',
+        args: [agentId, userId, siteName]
+    });
+    return rs.rows as unknown as SiteScreenshot[];
+}
+
+export async function createSiteTunnel(tunnel: {
+    agent_id: number;
+    user_id: number;
+    site_name: string;
+    tunnel_url: string;
+    expires_at: string;
+}): Promise<number> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'UPDATE site_tunnels SET is_active = 0 WHERE agent_id = ? AND user_id = ? AND site_name = ?',
+        args: [tunnel.agent_id, tunnel.user_id, tunnel.site_name]
+    });
+    
+    const rs = await db.execute({
+        sql: `INSERT INTO site_tunnels (agent_id, user_id, site_name, tunnel_url, expires_at) VALUES (?, ?, ?, ?, ?)`,
+        args: [tunnel.agent_id, tunnel.user_id, tunnel.site_name, tunnel.tunnel_url, tunnel.expires_at]
+    });
+    return Number(rs.lastInsertRowid);
+}
+
+export async function getActiveSiteTunnel(agentId: number, userId: number, siteName: string): Promise<SiteTunnel | undefined> {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: 'SELECT * FROM site_tunnels WHERE agent_id = ? AND user_id = ? AND site_name = ? AND is_active = 1 AND expires_at > CURRENT_TIMESTAMP ORDER BY created_at DESC LIMIT 1',
+        args: [agentId, userId, siteName]
+    });
+    if (rs.rows.length > 0) {
+        return rs.rows[0] as unknown as SiteTunnel;
+    }
+    return undefined;
+}
+
+export async function deactivateSiteTunnel(id: number): Promise<void> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'UPDATE site_tunnels SET is_active = 0 WHERE id = ?',
+        args: [id]
+    });
+}
+
+export async function updateAgentStatus(agentId: number, status: 'idle' | 'active'): Promise<void> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'UPDATE agents SET status = ?, last_active_at = CURRENT_TIMESTAMP WHERE id = ?',
+        args: [status, agentId]
+    });
+}
+
 export async function getBudget(agentId: number): Promise<Budget | undefined> {
     const db = await getClient();
     const today = new Date().toISOString().split('T')[0];
@@ -541,9 +678,33 @@ export async function updateBudget(agentId: number, limit: number): Promise<void
     });
 }
 
+export async function createBudget(agentId: number, dailyLimitUsd: number = 1.00): Promise<void> {
+    const db = await getClient();
+    const today = new Date().toISOString().split('T')[0];
+    await db.execute({
+        sql: 'INSERT INTO budgets (agent_id, daily_limit_usd, current_spend_usd, last_reset_date) VALUES (?, ?, 0, ?)',
+        args: [agentId, dailyLimitUsd, today]
+    });
+}
+
+export async function resetBudget(agentId: number): Promise<void> {
+    const db = await getClient();
+    const today = new Date().toISOString().split('T')[0];
+    await db.execute({
+        sql: 'UPDATE budgets SET current_spend_usd = 0, last_reset_date = ? WHERE agent_id = ?',
+        args: [today, agentId]
+    });
+}
+
 export async function canSpend(agentId: number): Promise<boolean> {
     const budget = await getBudget(agentId);
-    if (!budget) return false;
+    if (!budget) {
+        await createBudget(agentId);
+        return true;
+    }
+    if (!budget.daily_limit_usd || budget.daily_limit_usd <= 0) {
+        return true;
+    }
     return budget.current_spend_usd < budget.daily_limit_usd;
 }
 
@@ -628,6 +789,13 @@ export async function getTotalSpend(): Promise<number> {
 
 export async function getAllBudgets(): Promise<Budget[]> {
     const db = await getClient();
+    const today = new Date().toISOString().split('T')[0];
+
+    await db.execute({
+        sql: "UPDATE budgets SET current_spend_usd = 0, last_reset_date = ? WHERE last_reset_date IS NULL OR last_reset_date != ?",
+        args: [today, today]
+    });
+
     const rs = await db.execute(`
         SELECT b.*, a.name as agent_name 
         FROM budgets b 
@@ -815,12 +983,35 @@ export async function searchMemory(agentId: number, queryEmbedding: number[], li
     const db = await getClient();
     const rs = await db.execute({
         sql: `SELECT id, agent_id, content, embedding, created_at FROM agent_memory 
-              WHERE agent_id = ? 
-              ORDER BY id DESC 
-              LIMIT ?`,
-        args: [agentId, limit]
+              WHERE agent_id = ?`,
+        args: [agentId]
     });
-    return rs.rows as unknown as AgentMemory[];
+
+    const rows = rs.rows as unknown as any[];
+    if (queryEmbedding.length === 0 || rows.length === 0) {
+        return rows.slice(-limit).reverse() as AgentMemory[];
+    }
+
+    const { cosineSimilarity } = require('./embeddings');
+
+    const scored = rows.map(row => {
+        let emb: number[] = [];
+        try {
+            emb = JSON.parse(row.embedding);
+        } catch (e) {
+            emb = new Array(queryEmbedding.length).fill(0);
+        }
+        return {
+            id: Number(row.id),
+            agent_id: Number(row.agent_id),
+            content: String(row.content),
+            embedding: String(row.embedding),
+            created_at: String(row.created_at),
+            score: cosineSimilarity(queryEmbedding, emb)
+        } as AgentMemory & { score: number };
+    });
+
+    return scored.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
 export async function getAgentMemories(agentId: number, limit: number = 20): Promise<AgentMemory[]> {
@@ -830,6 +1021,14 @@ export async function getAgentMemories(agentId: number, limit: number = 20): Pro
         args: [agentId, limit]
     });
     return rs.rows as unknown as AgentMemory[];
+}
+
+export async function clearMemories(agentId: number): Promise<void> {
+    const db = await getClient();
+    await db.execute({
+        sql: 'DELETE FROM agent_memory WHERE agent_id = ?',
+        args: [agentId]
+    });
 }
 
 export async function deleteMemory(memoryId: number): Promise<void> {

@@ -11,6 +11,7 @@ The Python agent is the brain of the container. It's responsible for:
 - **Safety Checks**: Validating commands to prevent dangerous or unintended operations.
 - **Execution**: Running bash commands natively and capturing their output.
 - **State Management**: Handling conversation history and memory.
+- **Status Tracking**: Reporting idle/active status to the orchestrator.
 
 ## ⚙️ How it Works
 
@@ -30,18 +31,56 @@ The agent follows a standard Loop:
 
 ## 🛠️ Key Components in `agent.py`
 
-- `build_system_prompt()`: Dynamically creates the system instruction based on the agent's name and role.
+- `build_system_prompt()`: Dynamically creates the system instruction based on the agent's name, role, and personality. Includes instructions for:
+  - Workspace directory structure (work/, in/, out/, www/)
+  - Calendar events for scheduling future tasks (stored in calendar.db)
+  - RAG memory for persistent facts (stored in rag.db)
+  - Asset procurement for requesting files from the internet
+  - Telegram message optimization (concise outputs)
+  - Web app creation (vanilla HTML/CSS/JS, index.html required)
+  - ClawMotion for video creation
 - `call_llm()`: Uses Python's `urllib.request` to securely call the Orchestrator proxy. Since the container is air-gapped, this is the **only** way the agent can communicate with the outside world.
 - `extract_command()`: Uses regex and string parsing to identify the `ACTION: EXECUTE` block in the LLM's output.
+- `extract_panel_actions()`: Parses JSON at the end of responses for control panel actions.
 - `is_dangerous()`: A list of restricted commands that trigger a Human-in-the-Loop check.
 - `wait_for_approval()`: Creates and monitors lock files (`/tmp/hermit_approval.lock`) that the Orchestrator writes when a user clicks an "Approve" button in Telegram or the Dashboard.
 
 ## 📂 File Delivery via the Agent
 
-The agent is instructed to use the `/app/workspace/out/` directory for file delivery. It doesn't need any special API for this; it simply runs a standard Linux command like:
-`cp report.pdf /app/workspace/out/`
+The agent is instructed to use the `/app/workspace/out/` directory for file delivery:
+- Simply save any file (PDF, CSV, image, video) to `/app/workspace/out/`
+- The Orchestrator's **File Watcher** detects new files and delivers to Telegram automatically
 
-The Orchestrator's **File Watcher** detects the new file and handles the actual upload and delivery to the user's chat.
+Workspace structure:
+- `/app/workspace/work/`: Primary working directory (always cd here first)
+- `/app/workspace/in/`: Files uploaded by user via Telegram
+- `/app/workspace/out/`: Files auto-delivered to user via Telegram
+- `/app/workspace/www/`: Web apps (each subfolder = separate app with index.html)
+
+## 📝 Panel Actions
+
+Agents can trigger control panel actions by ending their response with JSON:
+
+```json
+{
+  "message": "Task completed!",
+  "panelActions": ["CALENDAR_CREATE:Title|Prompt|2026-02-28T09:00:00Z|"]
+}
+```
+
+### Available Actions:
+- **Calendar**: `CALENDAR_CREATE`, `CALENDAR_UPDATE`, `CALENDAR_DELETE`, `CALENDAR_LIST`
+- **Assets**: `ASSET_REQUEST:description|url|file_type`
+- **ClawMotion**: `CLAWMOTION:prompt|duration|output_file`
+
+## 🌐 Web App Creation
+
+Agents create web apps in `/app/workspace/www/[app_name]/`:
+- **Each subfolder is a separate web app**
+- **Required**: Each web app MUST have an `index.html` file
+- Use **vanilla** HTML, CSS, and JavaScript only (no frameworks like React/Vue)
+- Images go in `assets/` subfolder
+- Start server on port 8080 for user preview
 
 ## 📝 Logging & Auditing
 
